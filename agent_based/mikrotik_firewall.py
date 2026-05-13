@@ -1,5 +1,8 @@
-#!/usr/bin/env python3
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
+"""CheckMK agent-based check plugin for MikroTik firewall monitoring."""
+
+
+import time
+from typing import Any
 
 from cmk.agent_based.v2 import (
     AgentSection,
@@ -11,15 +14,13 @@ from cmk.agent_based.v2 import (
     Service,
     State,
     StringTable,
-    render,
     get_rate,
     get_value_store,
+    render,
 )
-import time
-from typing import Dict, Any
 
 
-def parse_mikrotik_firewall(string_table: StringTable) -> Dict[str, Dict[str, Any]]:
+def parse_mikrotik_firewall(string_table: StringTable) -> dict[str, dict[str, Any]]:  # noqa: C901
     """Parse MikroTik firewall rules from agent output."""
     data = {}
     current_rule = None
@@ -38,30 +39,30 @@ def parse_mikrotik_firewall(string_table: StringTable) -> Dict[str, Dict[str, An
         if line[0] == "@show_disabled":
             continue
 
-        if line[0] == 'comment':
-            comment = ' '.join(line[1:])
+        if line[0] == "comment":
+            comment = " ".join(line[1:])
 
-            if 'checkmk:' in comment:
-                current_rule = comment.split('checkmk: ')[1].split(')')[0].strip()
+            if "checkmk:" in comment:
+                current_rule = comment.split("checkmk: ")[1].split(")")[0].strip()
             else:
                 current_rule = comment
 
             data[current_rule] = {
-                'comment': comment,
-                'disabled': 'None',
-                'chain': 'unknown',
+                "comment": comment,
+                "disabled": "None",
+                "chain": "unknown",
             }
             continue
 
         if current_rule is None:
             continue
 
-        if line[0] == 'bytes':
-            data[current_rule]['bytes'] = int(line[1])
-        elif line[0] == 'packets':
-            data[current_rule]['packets'] = int(line[1])
-        elif line[0] in ['chain', 'disabled']:
-            data[current_rule][line[0]] = ' '.join(line[1:])
+        if line[0] == "bytes":
+            data[current_rule]["bytes"] = int(line[1])
+        elif line[0] == "packets":
+            data[current_rule]["packets"] = int(line[1])
+        elif line[0] in ["chain", "disabled"]:
+            data[current_rule][line[0]] = " ".join(line[1:])
 
     # attach global flag
     data["_meta"] = {"show_disabled": show_disabled}
@@ -69,7 +70,7 @@ def parse_mikrotik_firewall(string_table: StringTable) -> Dict[str, Dict[str, An
     return data
 
 
-def discover_mikrotik_firewall(section: Dict[str, Dict[str, Any]]) -> DiscoveryResult:
+def discover_mikrotik_firewall(section: dict[str, dict[str, Any]]) -> DiscoveryResult:
     """Discover firewall rules."""
     show_disabled = section.get("_meta", {}).get("show_disabled", False)
 
@@ -78,23 +79,20 @@ def discover_mikrotik_firewall(section: Dict[str, Dict[str, Any]]) -> DiscoveryR
         if rule_name == "_meta":
             continue
 
-        if rule_name == 'None':
+        if rule_name == "None":
             continue
 
-        disabled = rule_data.get('disabled')
+        disabled = rule_data.get("disabled")
         is_disabled = disabled == "true"
 
-        if show_disabled:
+        if show_disabled or not is_disabled:
             yield Service(item=rule_name)
-        else:
-            if not is_disabled:
-                yield Service(item=rule_name)
 
 
 def check_mikrotik_firewall(
     item: str,
-    params: Dict[str, Any],
-    section: Dict[str, Dict[str, Any]],
+    params: dict[str, Any],  # noqa: ARG001
+    section: dict[str, dict[str, Any]],
 ) -> CheckResult:
     """Check firewall rule traffic and status."""
     if item not in section:
@@ -105,7 +103,7 @@ def check_mikrotik_firewall(
     value_store = get_value_store()
     now = time.time()
 
-    disabled_raw = rule_data.get('disabled')
+    disabled_raw = rule_data.get("disabled")
     is_disabled = disabled_raw == "true"
 
     disabled_text = "Yes" if is_disabled else "No"
@@ -130,12 +128,12 @@ def check_mikrotik_firewall(
     )
 
     # Traffic metrics
-    if 'bytes' in rule_data:
+    if "bytes" in rule_data:
         bytes_rate = get_rate(
             value_store,
             f"mikrotik_firewall.{item}.bytes",
             now,
-            rule_data['bytes'],
+            rule_data["bytes"],
         )
         yield Metric(
             name="if_total_bps",
@@ -146,12 +144,12 @@ def check_mikrotik_firewall(
             notice=f"Traffic: {render.networkbandwidth(bytes_rate)}",
         )
 
-    if 'packets' in rule_data:
+    if "packets" in rule_data:
         packets_rate = get_rate(
             value_store,
             f"mikrotik_firewall.{item}.packets",
             now,
-            rule_data['packets'],
+            rule_data["packets"],
         )
         yield Metric(
             name="packets_per_second",

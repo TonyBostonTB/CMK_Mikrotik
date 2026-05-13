@@ -420,7 +420,17 @@ for o,a in opts:
     elif o in [ '-u', '--user' ]:
         user = a
     elif o in [ '-p', '--pass' ]:
-        password = a
+        # Support CheckMK password store: value arrives as "key:/path/to/stored_passwords"
+        if ':' in a:
+            _key, _path = a.split(':', 1)
+            try:
+                import pathlib as _pathlib
+                import cmk.utils.password_store as _ps
+                password = _ps.lookup(_pathlib.Path(_path), _key)
+            except Exception:
+                password = a
+        else:
+            password = a
     elif o in [ '-n', '--no-ssl' ]:
         secure   = False
         port    = 8728

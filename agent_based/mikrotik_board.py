@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
+"""CheckMK agent-based check plugin for MikroTik board monitoring."""
+
 
 from cmk.agent_based.v2 import (
     AgentSection,
@@ -10,22 +10,22 @@ from cmk.agent_based.v2 import (
     Service,
     State,
     StringTable,
-    render,
 )
 from packaging import version  # Sostituisce distutils.version che è deprecato
 
+
 def parse_mikrotik_board(string_table: StringTable) -> dict[str, str]:
     """Parse MikroTik board information from agent output."""
-    relevant_keys = {'board-name', 'version'}
+    relevant_keys = {"board-name", "version"}
     return {
-        line[0]: ' '.join(line[1:])
+        line[0]: " ".join(line[1:])
         for line in string_table
         if line and line[0] in relevant_keys
     }
 
 def discover_mikrotik_board(section: dict[str, str]) -> DiscoveryResult:
     """Discover service if version information is present."""
-    if section.get('version'):
+    if section.get("version"):
         yield Service()
 
 def check_mikrotik_board(
@@ -38,23 +38,23 @@ def check_mikrotik_board(
         return
 
     # Check version compliance if required
-    min_version = params.get('min_version', '0.0')
+    min_version = params.get("min_version", "0.0")
     current_state = State.OK
     summary_parts = []
 
-    if 'board-name' in section:
+    if "board-name" in section:
         summary_parts.append(f"Model: {section['board-name']}")
 
-    if 'version' in section:
-        current_version = section['version'].split(' ')[0]
+    if "version" in section:
+        current_version = section["version"].split(" ")[0]
         summary_parts.append(f"Version: {section['version']}")
 
-        if min_version != '0.0':
+        if min_version != "0.0":
             try:
                 if version.parse(current_version) < version.parse(min_version):
                     current_state = State.WARN
                     summary_parts.append(
-                        f"(below minimum required: {min_version})"
+                        f"(below minimum required: {min_version})",
                     )
             except version.InvalidVersion:
                 summary_parts.append("(version parsing failed)")
@@ -62,7 +62,7 @@ def check_mikrotik_board(
 
     yield Result(
         state=current_state,
-        summary=', '.join(summary_parts),
+        summary=", ".join(summary_parts),
     )
 
 # Register agent section

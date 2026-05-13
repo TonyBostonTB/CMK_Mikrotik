@@ -1,5 +1,7 @@
-#!/usr/bin/env python3
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
+"""CheckMK agent-based check plugin for MikroTik vrrp monitoring."""
+
+
+from typing import Any
 
 from cmk.agent_based.v2 import (
     AgentSection,
@@ -11,79 +13,82 @@ from cmk.agent_based.v2 import (
     State,
     StringTable,
 )
-from typing import Dict, Any
 
-def parse_mikrotik_vrrp(string_table: StringTable) -> Dict[str, Dict[str, str]]:
+
+def parse_mikrotik_vrrp(string_table: StringTable) -> dict[str, dict[str, str]]:
     """Parse MikroTik VRRP information from agent output."""
     data = {}
     current_session = None
-    
+
     for line in string_table:
         if not line:
             continue
-            
-        if line[0] == 'name':
+
+        if line[0] == "name":
             current_session = line[1]
             data[current_session] = {}
-            
+
         if current_session is not None:
-            data[current_session][line[0]] = ' '.join(line[1:])
-            
+            data[current_session][line[0]] = " ".join(line[1:])
+
     return data
 
-def discover_mikrotik_vrrp(section: Dict[str, Dict[str, str]]) -> DiscoveryResult:
+def discover_mikrotik_vrrp(section: dict[str, dict[str, str]]) -> DiscoveryResult:
     """Discover active VRRP instances (not disabled)."""
     for session, session_data in section.items():
-        if session_data.get('disabled', '').lower() == 'false':
+        if session_data.get("disabled", "").lower() == "false":
             yield Service(item=session)
 
 def check_mikrotik_vrrp(
     item: str,
-    params: Dict[str, Any],
-    section: Dict[str, Dict[str, str]],
+    params: dict[str, Any],  # noqa: ARG001
+    section: dict[str, dict[str, str]],
 ) -> CheckResult:
     """Check VRRP instance status."""
     if item not in section:
         yield Result(state=State.UNKNOWN, summary="VRRP instance not found")
         return
-        
+
     data = section[item]
-    
+
     # Check if disabled
-    if data.get('disabled', '').lower() != 'false':
+    if data.get("disabled", "").lower() != "false":
         yield Result(
             state=State.WARN,
             summary=f"VRRP instance is disabled ({data['disabled']})",
         )
         return
-    
+
+    iface = data.get("interface", "unknown interface")
+    vrid = data.get("vrid", "unknown")
+    mac = data.get("mac-address", "unknown")
+
     # Determine state based on running/master/backup status
-    if data.get('running', '').lower() == 'true':
-        if data.get('master', '').lower() == 'true':
+    if data.get("running", "").lower() == "true":
+        if data.get("master", "").lower() == "true":
             yield Result(
                 state=State.OK,
-                summary=f"Master on {data.get('interface', 'unknown interface')}",
-                details=f"VRID: {data.get('vrid', 'unknown')}, MAC: {data.get('mac-address', 'unknown')}",
+                summary=f"Master on {iface}",
+                details=f"VRID: {vrid}, MAC: {mac}",
             )
         else:
             yield Result(
                 state=State.CRIT,
-                summary=f"Running on {data.get('interface', 'unknown interface')} but not master",
-                details=f"VRID: {data.get('vrid', 'unknown')} (expected master)",
+                summary=f"Running on {iface} but not master",
+                details=f"VRID: {vrid} (expected master)",
             )
+    elif data.get("backup", "").lower() == "true":
+        yield Result(
+            state=State.OK,
+            summary=f"Backup on {iface}",
+            details=f"VRID: {vrid}, MAC: {mac}",
+        )
     else:
-        if data.get('backup', '').lower() == 'true':
-            yield Result(
-                state=State.OK,
-                summary=f"Backup on {data.get('interface', 'unknown interface')}",
-                details=f"VRID: {data.get('vrid', 'unknown')}, MAC: {data.get('mac-address', 'unknown')}",
-            )
-        else:
-            yield Result(
-                state=State.CRIT,
-                summary=f"Not running on {data.get('interface', 'unknown interface')} and not backup",
-                details=f"VRID: {data.get('vrid', 'unknown')} (inconsistent state)",
-            )
+        yield Result(
+            state=State.CRIT,
+            summary=f"Not running on {iface} and not backup",
+            details=f"VRID: {vrid} (inconsistent state)",
+        )
 
 # Register agent section
 agent_section_mikrotik_vrrp = AgentSection(
