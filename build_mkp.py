@@ -88,7 +88,7 @@ INFO: dict = {
     "version.packaged": "build_mkp.py",
     "version.min_required": "2.4.0",
     "version.usable_until": "-",
-    "author": "Andrea Fadda (a.fadda@gmail.com)",
+    "author": "Tony Boston (tboston@csitlab.org)",
     "download_url": "https://github.com/TonyBostonTB/CMK_Mikrotik",
     "files": {
         "cmk_addons_plugins": [arc for _, arc in ADDON_FILES],
