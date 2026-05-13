@@ -1,5 +1,38 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [4.0.0] - 2026-05-13
+### Changed
+- **Requires CheckMK 2.4 or later.** The `cmk.gui.plugins.wato` API was
+  removed in CheckMK 2.5. The plugin now uses the `cmk.rulesets.v1` and
+  `cmk.server_side_calls.v1` APIs, replacing the `wato/` directory with
+  `rulesets/` and `server_side_calls/`.
+- The two separate SSL/TLS dropdowns (`Use SSL` and `Validate certificate`)
+  have been replaced by a single **Connection security** dropdown with three
+  mutually exclusive options: SSL (verify certificate), SSL (skip certificate
+  verification), and Plain TCP.
+- Power monitoring redesigned: one service per PSU (`Power PSU1`,
+  `Power PSU2`, …) instead of a single aggregated `Power Usage` service,
+  fixing doubled readings on dual-PSU devices. RouterOS's own
+  `power-consumption` field is now captured directly.
+- Fan check: the `output_metrics` toggle has been removed; performance
+  metrics are always emitted.
+- Password store lookup now uses `cmk.utils.password_store.lookup()`,
+  correctly handling CheckMK's binary password store format. Previously,
+  using the CheckMK password store caused login failures.
+- Stored rules are automatically migrated on MKP install — no manual
+  reconfiguration needed. Hyphenated keys (`no-ssl`, `skip-cert-check`,
+  `show-disabled`) are renamed transparently, and obsolete keys
+  (`output_metrics`, `psu_count`) are stripped silently.
+
+### Migration notes (v3.x → v4.0.0)
+- **Special agent and check parameter rules**: migrated automatically on
+  MKP install. No action required.
+- **Power services**: the old `Power Usage` service is incompatible with
+  the new per-PSU check. After installing the MKP, run **Update service
+  configuration** on any MikroTik host that had health monitoring enabled.
+  The old service will be removed and replaced by `Power PSU1` / `Power PSU2`
+  (or however many PSUs the device reports).
+
 ## [3.3.0] - 2026-02-18
 ### Changed
 - Add the option to show the disabled firewall rules that is discovery by the plugin (Thanks to Marcel Eckert for the suggestion)
