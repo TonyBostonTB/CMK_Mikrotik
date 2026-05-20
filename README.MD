@@ -40,8 +40,3 @@ with the new per-PSU check introduced in v4.0.0. After installing the MKP,
 run **Update service configuration** on any MikroTik host that had health
 monitoring enabled. The old service will be replaced by `Power PSU1` /
 `Power PSU2` (or however many PSUs the device reports).
-
-### Reporting issues
-
-Please open an issue on the GitHub repository:
-https://github.com/devilofhell87/CMK_Mikrotik/
