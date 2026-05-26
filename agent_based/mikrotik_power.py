@@ -1,7 +1,6 @@
 """CheckMK agent-based check plugin for MikroTik power monitoring."""
 
 
-import contextlib
 from typing import Any
 
 from cmk.agent_based.v2 import (
@@ -42,16 +41,9 @@ def _parse_psu_line(line: list[str]) -> tuple[str, str, float] | None:
 def parse_mikrotik_power(string_table: StringTable) -> dict[str, Any]:
     """Parse MikroTik power supply information from agent output."""
     psus: dict[str, dict[str, float]] = {}
-    total_power = 0.0
 
     for line in string_table:
         if not line:
-            continue
-
-        # Capture RouterOS's pre-calculated total power consumption (Watts)
-        if line[0] == "power-consumption":
-            with contextlib.suppress(ValueError, IndexError):
-                total_power = float(line[1])
             continue
 
         parsed = _parse_psu_line(line)
@@ -63,15 +55,7 @@ def parse_mikrotik_power(string_table: StringTable) -> dict[str, Any]:
             psus[psu_name] = {}
         psus[psu_name][metric_type] = value
 
-    # Calculate per-PSU watts
-    for psu_data in psus.values():
-        psu_data["power"] = psu_data.get("current", 0.0) * psu_data.get("voltage", 0.0)
-
-    # Use RouterOS total if provided, otherwise sum per-PSU calculated watts
-    if not total_power:
-        total_power = sum(p["power"] for p in psus.values())
-
-    return {"psus": psus, "total_power": total_power}
+    return {"psus": psus}
 
 
 def discover_mikrotik_power(section: dict[str, Any]) -> DiscoveryResult:
@@ -85,7 +69,7 @@ def check_mikrotik_power(
     params: dict[str, Any],
     section: dict[str, Any],
 ) -> CheckResult:
-    """Check voltage, current, and calculated wattage for one PSU."""
+    """Check voltage and current for one PSU."""
     if item not in section.get("psus", {}):
         yield Result(state=State.UNKNOWN, summary="PSU not found in monitoring data")
         return
@@ -95,7 +79,6 @@ def check_mikrotik_power(
 
     voltage = psu_data.get("voltage")
     current = psu_data.get("current")
-    power = psu_data.get("power", 0.0)
 
     if voltage is not None:
         if voltage < crit_voltage:
@@ -110,10 +93,6 @@ def check_mikrotik_power(
     if current is not None:
         yield Result(state=State.OK, notice=f"Current: {current:.3f}A")
         yield Metric(name="current", value=current)
-
-    if power > 0:
-        yield Result(state=State.OK, summary=f"Power: {power:.2f}W")
-        yield Metric(name="power", value=power)
 
 
 # Register agent section
