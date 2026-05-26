@@ -4,10 +4,10 @@ Monitors MikroTik RouterOS devices via the RouterOS API (v2, port 8729/SSL or 87
 
 - System health, fans, and temperature sensors
 - Power supply units (per-PSU voltage, current, and wattage)
-- BGP and OSPF neighbors
-- VRRP status
-- IPsec tunnels
-- Firewall rules (with optional disabled-rule visibility)
+- BGP and OSPF neighbors - not tested
+- VRRP status - not tested
+- IPsec tunnels - not tested
+- Firewall rules (with optional disabled-rule visibility) - not tested
 - File age monitoring
 - RouterOS board info and version enforcement
 - License expiration (CHR)
