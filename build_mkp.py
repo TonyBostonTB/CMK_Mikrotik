@@ -22,7 +22,7 @@ import tarfile
 import time
 
 PACKAGE_NAME = "mikrotik"
-VERSION = "4.0.1"
+VERSION = "4.0.2"
 OUTPUT = f"{PACKAGE_NAME}-{VERSION}.mkp"
 
 # (source path relative to repo root, archive path inside cmk_addons_plugins.tar)
@@ -36,6 +36,7 @@ ADDON_FILES: list[tuple[str, str]] = [
     ("agent_based/mikrotik_ipsec.py",    "mikrotik/agent_based/mikrotik_ipsec.py"),
     ("agent_based/mikrotik_license.py",  "mikrotik/agent_based/mikrotik_license.py"),
     ("agent_based/mikrotik_ospf.py",     "mikrotik/agent_based/mikrotik_ospf.py"),
+    ("agent_based/mikrotik_poe.py",       "mikrotik/agent_based/mikrotik_poe.py"),
     ("agent_based/mikrotik_power.py",    "mikrotik/agent_based/mikrotik_power.py"),
     ("agent_based/mikrotik_psu.py",      "mikrotik/agent_based/mikrotik_psu.py"),
     ("agent_based/mikrotik_vrrp.py",     "mikrotik/agent_based/mikrotik_vrrp.py"),
@@ -74,9 +75,8 @@ INFO: dict = {
         "- Age of local files, watchdog crashfile handling\n"
         "\n"
         f"Version {VERSION}:\n"
-        "- Fixed mA/A threshold boundary: currents of exactly 100mA were incorrectly\n"
-        "  treated as 100A, causing wildly wrong power readings (e.g. 5430W instead of 5.4W)\n"
-        "- Fixed agent version string (was still reporting 3.3.x-mikrotik_agent)\n"
+        "- New 'PoE Consumption' service reporting poe-out-consumption from RouterOS health\n"
+        "- New 'FAN Status' service item for the overall fan-state field\n"
         "\n"
         "UPGRADE NOTES:\n"
         "- Requires CheckMK 2.4.0 or later (2.3/2.4 WATO rules are incompatible)\n"

@@ -1,5 +1,14 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [4.0.2] - 2026-05-26
+### Added
+- **PoE Consumption service**: RouterOS health field `poe-out-consumption` is now
+  emitted as a dedicated `<<<mikrotik_poe>>>` section and monitored as a separate
+  "PoE Consumption" service showing output watts and a `poe_consumption` metric.
+- **FAN Status service**: the `fan-state` field (overall fan health reported by RouterOS)
+  was previously silently dropped by the fan parser. It is now discovered as a
+  "FAN Status" service item alongside the per-fan speed services.
+
 ## [4.0.1] - 2026-05-26
 ### Fixed
 - **Power calculation**: currents of exactly 100 mA were not converted to amps

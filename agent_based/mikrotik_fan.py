@@ -14,39 +14,58 @@ from cmk.agent_based.v2 import (
 )
 
 
-def parse_mikrotik_fan(string_table: StringTable) -> dict[str, dict[str, int]]:
+def parse_mikrotik_fan(string_table: StringTable) -> dict[str, dict]:
     """Parse MikroTik fan information from agent output."""
-    data = {}
+    data: dict[str, dict] = {}
 
     for line in string_table:
-        if not line or "speed" not in line[0]:
+        if not line or len(line) < 2:  # noqa: PLR2004
             continue
 
-        fan_name = line[0].split("-")[0]
-        try:
-            data[fan_name] = {"speed": int(line[1])}
-        except (IndexError, ValueError):
-            continue
+        if "speed" in line[0]:
+            fan_name = line[0].split("-")[0]
+            try:
+                data[fan_name] = {"speed": int(line[1])}
+            except ValueError:
+                continue
+        elif line[0] == "fan-state":
+            data["Status"] = {"state": line[1]}
 
     return data
 
-def discover_mikrotik_fan(section: dict[str, dict[str, int]]) -> DiscoveryResult:
-    """Discover active fans (speed > 0)."""
+
+def discover_mikrotik_fan(section: dict[str, dict]) -> DiscoveryResult:
+    """Discover active fans and overall fan status."""
     for fan_name, fan_data in section.items():
-        if fan_data.get("speed", 0) > 0:
+        if "speed" in fan_data and fan_data["speed"] > 0:
             yield Service(item=fan_name)
+        elif "state" in fan_data:
+            yield Service(item=fan_name)
+
 
 def check_mikrotik_fan(
     item: str,
     params: dict,
-    section: dict[str, dict[str, int]],
+    section: dict[str, dict],
 ) -> CheckResult:
-    """Check fan speed against configured thresholds."""
+    """Check fan speed or overall fan status."""
     if item not in section:
         yield Result(state=State.UNKNOWN, summary="Fan not found in monitoring data")
         return
 
-    fan_speed = section[item].get("speed")
+    fan_data = section[item]
+
+    # Overall fan state (fan-state field)
+    if "state" in fan_data:
+        state_val = fan_data["state"]
+        if state_val == "ok":
+            yield Result(state=State.OK, summary=f"Status: {state_val.upper()}")
+        else:
+            yield Result(state=State.CRIT, summary=f"Status: {state_val.upper()}")
+        return
+
+    # Per-fan speed check
+    fan_speed = fan_data.get("speed")
     if fan_speed is None:
         yield Result(state=State.UNKNOWN, summary="No speed data available")
         return

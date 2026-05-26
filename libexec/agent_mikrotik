@@ -620,7 +620,7 @@ for module in command_options.keys():
 
         # special handling if name is not sufficiant
         for special in ['current', 'voltage']:
-            info['power'].update(dict(filter(lambda item: special in item[0], 
+            info['power'].update(dict(filter(lambda item: special in item[0],
                                                  line.items())))
 
         # fake temperature to be a linux sensor
@@ -639,6 +639,12 @@ for module in command_options.keys():
                 print ("<<<mikrotik_%s>>>" % what)
                 for item in info[what]:
                     print ("%s %s" % ( item, info[what][item]))
+
+        # PoE output consumption as its own dedicated section
+        if 'poe-out-consumption' in line:
+            print("<<<mikrotik_poe>>>")
+            print("poe-out-consumption %s" % line['poe-out-consumption'])
+            print("<<<>>>")
 
     # ipsec
     elif header == "mikrotik_ipsec":
