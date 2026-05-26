@@ -22,7 +22,7 @@ import tarfile
 import time
 
 PACKAGE_NAME = "mikrotik"
-VERSION = "4.0.0"
+VERSION = "4.0.1"
 OUTPUT = f"{PACKAGE_NAME}-{VERSION}.mkp"
 
 # (source path relative to repo root, archive path inside cmk_addons_plugins.tar)
@@ -74,10 +74,9 @@ INFO: dict = {
         "- Age of local files, watchdog crashfile handling\n"
         "\n"
         f"Version {VERSION}:\n"
-        "- Migrated to cmk.rulesets.v1 API (CheckMK 2.5+ required)\n"
-        "- Migrated to cmk.server_side_calls.v1 with proper Secret handling\n"
-        "- Power monitoring now creates one service per PSU instead of a single total\n"
-        "- Fixed power-consumption field being silently discarded by the parser\n"
+        "- Fixed mA/A threshold boundary: currents of exactly 100mA were incorrectly\n"
+        "  treated as 100A, causing wildly wrong power readings (e.g. 5430W instead of 5.4W)\n"
+        "- Fixed agent version string (was still reporting 3.3.x-mikrotik_agent)\n"
         "\n"
         "UPGRADE NOTES:\n"
         "- Requires CheckMK 2.4.0 or later (2.3/2.4 WATO rules are incompatible)\n"

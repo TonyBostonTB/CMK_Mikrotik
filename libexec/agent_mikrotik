@@ -494,7 +494,7 @@ if not restful:
 
 # special agent header
 print ("<<<check_mk>>>")
-print ("Version: 3.3.x-mikrotik_agent")
+print ("Version: 4.0.1-mikrotik_agent")
 
 # detect firmware version and set commands
 version=myapi(["/system/resource/print"])[0]['version'].split('.')[0]

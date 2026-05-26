@@ -32,7 +32,7 @@ def _parse_psu_line(line: list[str]) -> tuple[str, str, float] | None:
         psu_id, metric_type = metric.split("-", 1)
         value = float(line[1])
         # Convert mA back to A (v7 agent multiplies A→mA for current readings)
-        if metric_type == "current" and value > _MA_TO_A_THRESHOLD:
+        if metric_type == "current" and value >= _MA_TO_A_THRESHOLD:
             value /= 1000
         return psu_id.upper(), metric_type, value
     except (ValueError, IndexError):

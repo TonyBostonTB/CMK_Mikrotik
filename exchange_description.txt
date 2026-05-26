@@ -1,0 +1,23 @@
+MikroTik RouterOS monitoring for CheckMK
+
+Monitors MikroTik RouterOS devices via the RouterOS API (v2, port 8729/SSL or 8728) or the RESTful API. Provides checks for:
+
+- System health, fans, and temperature sensors
+- Power supply units (per-PSU voltage, current, and wattage)
+- BGP and OSPF neighbors
+- VRRP status
+- IPsec tunnels
+- Firewall rules (with optional disabled-rule visibility)
+- File age monitoring
+- RouterOS board info and version enforcement
+- License expiration (CHR)
+
+v4.0.0 — CheckMK 2.4/2.5 compatibility update
+
+This release is a full API migration. The cmk.gui.plugins.wato interface was removed in CheckMK 2.5; the plugin now uses cmk.rulesets.v1 and cmk.server_side_calls.v1. Existing rules are migrated automatically on install — no manual reconfiguration needed.
+
+The SSL connection options have been consolidated into a single dropdown (SSL/verify, SSL/skip cert, Plain TCP) to prevent conflicting settings. Power monitoring now creates one service per PSU instead of a single aggregated service, fixing doubled readings on dual-PSU devices. Password store integration has been fixed to handle CheckMK's binary store format correctly.
+
+Tested on CheckMK 2.4. Compatibility with CheckMK 2.5 follows from the API migration but has not yet been verified in production.
+
+Based on the original plugin by Andrea Fadda (devilofhell87).

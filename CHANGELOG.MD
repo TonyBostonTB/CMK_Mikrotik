@@ -1,5 +1,14 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [4.0.1] - 2026-05-26
+### Fixed
+- **Power calculation**: currents of exactly 100 mA were not converted to amps
+  because the boundary check used `>` instead of `>=`. This caused a current of
+  100 mA to be treated as 100 A, producing absurd wattage readings (e.g. 5430 W
+  instead of 5.4 W) on switches whose PSU current sits at that exact threshold.
+- **Agent version string**: the `<<<check_mk>>>` header still reported
+  `3.3.x-mikrotik_agent`; updated to `4.0.1-mikrotik_agent`.
+
 ## [4.0.0] - 2026-05-13
 ### Changed
 - **Requires CheckMK 2.4 or later.** The `cmk.gui.plugins.wato` API was
