@@ -1,5 +1,11 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [4.0.3] - 2026-05-26
+### Fixed
+- Agent version string updated to `4.0.3-mikrotik_agent`
+- Removed inaccurate V×I power calculation from `Power PSU` services;
+  power is now exclusively reported by the dedicated `PoE Consumption` service
+
 ## [4.0.2] - 2026-05-26
 ### Added
 - **PoE Consumption service**: RouterOS health field `poe-out-consumption` is now
