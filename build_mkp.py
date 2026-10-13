@@ -102,10 +102,16 @@ def _changelog_section(version: str) -> str:
     return "\n".join(lines[start:end]).strip() + "\n"
 
 
+DESCRIPTION = SUMMARY + "\n" + _changelog_section(VERSION)
+# The Checkmk Exchange rejects the upload if the description looks like HTML
+# ("must not contain HTML markup"), e.g. an agent section header in angle brackets.
+if "<" in DESCRIPTION or ">" in DESCRIPTION:
+    raise SystemExit("ERROR: description contains '<' or '>', the Exchange rejects it as HTML")
+
 INFO: dict = {
     "title": "Mikrotik",
     "name": PACKAGE_NAME,
-    "description": SUMMARY + "\n" + _changelog_section(VERSION),
+    "description": DESCRIPTION,
     "version": VERSION,
     "version.packaged": CMK_PACKAGED,
     "version.min_required": "2.4.0",
