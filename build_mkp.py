@@ -67,24 +67,24 @@ ADDON_FILES: list[tuple[str, str]] = [
 # as "Built on Checkmk version" - update it with every release.
 CMK_PACKAGED = "2.5.0p14"
 
-# Stable feature summary, the same for every version. Version-specific notes
-# are appended from CHANGELOG.MD by _changelog_section().
+# Version description shown on the Checkmk Exchange. The Exchange shows it as
+# plain text: line breaks collapse, Markdown is not rendered and ` ' " are
+# shown as HTML entities (&#96; ...), < > are rejected as HTML. So the text
+# is generated as plain sentences from CHANGELOG.MD.
 SUMMARY = (
-    "Monitoring plugin for MikroTik RouterOS supporting:\n"
-    "- BGP, OSPF, VRRP\n"
-    "- Fan, PSU, Temperature, Power (per-PSU services)\n"
-    "- RouterOS Info (model, serial, version, RouterBOOT firmware), License expiry\n"
-    "- HW/SW inventory (model, serial, RouterOS version, RouterBOOT firmware)\n"
-    "- IPsec, Firewall filter rules\n"
-    "- Age of local files, watchdog crashfile handling\n"
-    "\n"
-    "Requires CheckMK 2.4.0 or later. Upgrading from 3.x: see 'Migration from v3.x'\n"
-    "in the README. Full changelog: CHANGELOG.MD in the source repository.\n"
+    "MikroTik RouterOS monitoring: BGP, OSPF, VRRP; fan, PSU, temperature and "
+    "per-PSU power; RouterOS Info and HW/SW inventory (model, serial number, "
+    "RouterOS version, RouterBOOT firmware); CHR license expiry; IPsec and "
+    "firewall filter rules; file age and crashfile handling. "
+    "Requires CheckMK 2.4.0 or later. Full changelog: CHANGELOG.MD in the "
+    "source repository."
 )
 
+_FORBIDDEN = set("<>`'\"*#[]")
 
-def _changelog_section(version: str) -> str:
-    """Return the CHANGELOG.MD section of *version* (heading included).
+
+def _changelog_section(version: str) -> tuple[str, list[str]]:
+    """Return heading and body lines of the CHANGELOG.MD section of *version*.
 
     Fails the build if the section is missing, so the version description on
     the Exchange can never drift from the changelog again.
@@ -99,14 +99,39 @@ def _changelog_section(version: str) -> str:
         (i for i in range(start + 1, len(lines)) if lines[i].startswith("## [")),
         len(lines),
     )
-    return "\n".join(lines[start:end]).strip() + "\n"
+    return lines[start], lines[start + 1:end]
 
 
-DESCRIPTION = SUMMARY + "\n" + _changelog_section(VERSION)
-# The Checkmk Exchange rejects the upload if the description looks like HTML
-# ("must not contain HTML markup"), e.g. an agent section header in angle brackets.
-if "<" in DESCRIPTION or ">" in DESCRIPTION:
-    raise SystemExit("ERROR: description contains '<' or '>', the Exchange rejects it as HTML")
+def _plain(text: str) -> str:
+    """Drop Markdown emphasis/code marks and quotes."""
+    for ch in "`*\"'":
+        text = text.replace(ch, "")
+    return " ".join(text.split())
+
+
+def _version_description(version: str) -> str:
+    """'Changes in 4.1.0 (2026-10-13): Added: a; b. Changed: c.' as one line."""
+    heading, body = _changelog_section(version)
+    date = heading.split("] - ", 1)[1].strip() if "] - " in heading else ""
+    groups: list[tuple[str, list[str]]] = []
+    for line in body:
+        if line.startswith("### "):
+            groups.append((line[4:].strip(), []))
+        elif line.lstrip().startswith("- ") and groups:
+            groups[-1][1].append(line.lstrip()[2:])
+        elif line.strip() and groups and groups[-1][1]:
+            groups[-1][1][-1] += " " + line.strip()  # bullet continuation
+    parts = [
+        f"{title}: " + "; ".join(_plain(b).rstrip(".") for b in bullets) + "."
+        for title, bullets in groups if bullets
+    ]
+    head = f"Changes in {version}" + (f" ({date})" if date else "") + ":"
+    return " ".join([head, *parts])
+
+
+DESCRIPTION = SUMMARY + " " + _version_description(VERSION)
+if bad := _FORBIDDEN & set(DESCRIPTION):
+    raise SystemExit(f"ERROR: description contains {sorted(bad)}, the Exchange mangles or rejects them")
 
 INFO: dict = {
     "title": "Mikrotik",
