@@ -5,17 +5,17 @@
 - **RouterOS Info**: the agent module `board` now also queries
   `/system/routerboard` and reports serial number and RouterBOOT firmware
   (`current-firmware`, `upgrade-firmware`). Keys are emitted with an `rb-`
-  prefix in the `mikrotik_board` agent section.
+  prefix in the board agent section.
 - **Firmware upgrade pending**: if `upgrade-firmware` is higher than
   `current-firmware`, RouterOS Info reports the pending RouterBOOT upgrade.
   New rule parameter "State if RouterBOOT firmware upgrade is pending"
   (default WARN).
-- **HW/SW inventory plugin** `mikrotik_board`: `hardware.system`
+- **HW/SW inventory plugin**: `hardware.system`
   (manufacturer, model, serial), `software.os` (vendor, name, version),
   `software.firmware` (vendor, version). Needs the "Do HW/SW Inventory" rule.
 
 ### Changed
-- Agent version string updated to `4.1.0-mikrotik_agent`
+- Agent version string updated to 4.1.0
 
 ### Upgrade notes
 - No rule changes needed. Serial and firmware appear in `RouterOS Info` once
