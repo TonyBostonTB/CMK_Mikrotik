@@ -69,9 +69,8 @@ CMK_PACKAGED = "2.5.0p14"
 
 # Version description shown on the Checkmk Exchange. The Exchange shows it as
 # plain text: line breaks collapse, Markdown is not rendered and ` ' " are
-# shown as HTML entities (&#96; ...), _ is shown as \\_, < > are rejected as
-# HTML. So the text
-# is generated as plain sentences from CHANGELOG.MD.
+# shown as HTML entities (&#96; ...), _ is shown as \_, < > are rejected as
+# HTML. So the text is generated as plain sentences from CHANGELOG.MD.
 SUMMARY = (
     "MikroTik RouterOS monitoring: BGP, OSPF, VRRP; fan, PSU, temperature and "
     "per-PSU power; RouterOS Info and HW/SW inventory (model, serial number, "
