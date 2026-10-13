@@ -18,6 +18,7 @@ from cmk.rulesets.v1.form_specs import (
     Integer,
     LevelDirection,
     List,
+    ServiceState,
     SimpleLevels,
     String,
     TimeMagnitude,
@@ -111,6 +112,19 @@ rule_spec_mikrotik_board = CheckParameters(
                         "Major.Minor.Patch (e.g. 7.14).",
                     ),
                     prefill=DefaultValue("0.0"),
+                ),
+            ),
+            "firmware_upgrade_pending": DictElement(
+                required=False,
+                parameter_form=ServiceState(
+                    title=Title("State if RouterBOOT firmware upgrade is pending"),
+                    help_text=Help(
+                        "Applies when /system/routerboard reports an "
+                        "upgrade-firmware higher than current-firmware. "
+                        "Apply with /system/routerboard upgrade and a reboot. "
+                        "Requires agent module 'RouterOS Board Info'.",
+                    ),
+                    prefill=DefaultValue(ServiceState.WARN),
                 ),
             ),
         },

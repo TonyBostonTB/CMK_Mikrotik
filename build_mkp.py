@@ -22,7 +22,7 @@ import tarfile
 import time
 
 PACKAGE_NAME = "mikrotik"
-VERSION = "4.0.3"
+VERSION = "4.1.0"
 OUTPUT = f"{PACKAGE_NAME}-{VERSION}.mkp"
 
 # (source path relative to repo root, archive path inside cmk_addons_plugins.tar)
@@ -63,30 +63,53 @@ ADDON_FILES: list[tuple[str, str]] = [
     ("README.MD",                        "mikrotik/README.MD"),
 ]
 
+# CheckMK version this release was built and tested on. Shown on the Exchange
+# as "Built on Checkmk version" - update it with every release.
+CMK_PACKAGED = "2.5.0p14"
+
+# Stable feature summary, the same for every version. Version-specific notes
+# are appended from CHANGELOG.MD by _changelog_section().
+SUMMARY = (
+    "Monitoring plugin for MikroTik RouterOS supporting:\n"
+    "- BGP, OSPF, VRRP\n"
+    "- Fan, PSU, Temperature, Power (per-PSU services)\n"
+    "- RouterOS Info (model, serial, version, RouterBOOT firmware), License expiry\n"
+    "- HW/SW inventory (model, serial, RouterOS version, RouterBOOT firmware)\n"
+    "- IPsec, Firewall filter rules\n"
+    "- Age of local files, watchdog crashfile handling\n"
+    "\n"
+    "Requires CheckMK 2.4.0 or later. Upgrading from 3.x: see 'Migration from v3.x'\n"
+    "in the README. Full changelog: CHANGELOG.MD in the source repository.\n"
+)
+
+
+def _changelog_section(version: str) -> str:
+    """Return the CHANGELOG.MD section of *version* (heading included).
+
+    Fails the build if the section is missing, so the version description on
+    the Exchange can never drift from the changelog again.
+    """
+    lines = open("CHANGELOG.MD", encoding="utf-8").read().splitlines()
+    heading = f"## [{version}]"
+    try:
+        start = next(i for i, line in enumerate(lines) if line.startswith(heading))
+    except StopIteration:
+        raise SystemExit(f"ERROR: no '{heading}' section in CHANGELOG.MD")
+    end = next(
+        (i for i in range(start + 1, len(lines)) if lines[i].startswith("## [")),
+        len(lines),
+    )
+    return "\n".join(lines[start:end]).strip() + "\n"
+
+
 INFO: dict = {
     "title": "Mikrotik",
     "name": PACKAGE_NAME,
-    "description": (
-        "Monitoring plugin for MikroTik RouterOS supporting:\n"
-        "- BGP, OSPF, VRRP\n"
-        "- Fan, PSU, Temperature, Power (per-PSU services)\n"
-        "- RouterOS Info, License expiry\n"
-        "- IPsec, Firewall filter rules\n"
-        "- Age of local files, watchdog crashfile handling\n"
-        "\n"
-        f"Version {VERSION}:\n"
-        "- New 'PoE Consumption' service reporting poe-out-consumption from RouterOS health\n"
-        "- New 'FAN Status' service item for the overall fan-state field\n"
-        "\n"
-        "UPGRADE NOTES:\n"
-        "- Requires CheckMK 2.4.0 or later (2.3/2.4 WATO rules are incompatible)\n"
-        "- Existing 'Power Usage' services must be rediscovered (now 'Power PSU1' etc.)\n"
-        "- Existing special agent rules must be reconfigured in Setup > Other integrations\n"
-    ),
+    "description": SUMMARY + "\n" + _changelog_section(VERSION),
     "version": VERSION,
-    "version.packaged": "build_mkp.py",
+    "version.packaged": CMK_PACKAGED,
     "version.min_required": "2.4.0",
-    "version.usable_until": "-",
+    "version.usable_until": None,  # no upper limit
     "author": "Tony Boston (tboston@csitlab.org)",
     "download_url": "https://github.com/TonyBostonTB/CMK_Mikrotik",
     "files": {

@@ -12,6 +12,8 @@ It includes checks for:
 - License expiration (CHR) and file age
 - Firewall rules based on comment filters
 - System health and crashfile detection
+- RouterOS Info: model, serial, RouterOS version, RouterBOOT firmware
+  (state if a firmware upgrade is pending) and HW/SW inventory
 
 ### Requirements
 
@@ -23,7 +25,7 @@ It includes checks for:
 Install the `.mkp` file via **Setup → Extension packages** or via the CLI:
 
 ```
-mkp install mikrotik-4.0.0.mkp
+mkp install mikrotik-<version>.mkp
 ```
 
 After installation, configure the special agent under
