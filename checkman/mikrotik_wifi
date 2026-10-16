@@ -1,0 +1,43 @@
+title: MikroTik WiFi
+agents: mikrotik
+catalog: hw/network/mikrotik
+license: GPL
+distribution: check_mk
+description:
+ Connected clients, signal strength and radio state per SSID of a
+ MikroTik RouterOS device.
+
+ Reads the registration table and the wireless interfaces of all
+ three RouterOS wireless drivers, whichever is installed: the new
+ {wifi} driver (RouterOS 7.13+), the legacy {wireless} driver and
+ the legacy CAPsMAN ({/caps-man}). On a CAPsMAN controller the
+ services cover the clients and radios of all managed access points,
+ so only the controller needs the special agent.
+
+ The new {wifi} driver does not report clients via SNMP, which is
+ why the SNMP based checks find nothing on such access points.
+
+ Reported: number of clients (levels upper and lower), average and
+ weakest client signal in dBm (lower levels), number of radios that
+ broadcast the SSID. A radio that is not running makes the service
+ {WARN} by default (configurable). On a CAPsMAN controller this
+ happens when an access point lost the connection to the controller.
+
+ On a CAPsMAN controller the HW/SW inventory also lists all managed
+ access points (identity, model, serial, RouterOS version, base MAC,
+ state) under networking.wlan.controller.accesspoints.
+
+ Client MAC addresses are not collected.
+
+ To connect to the MikroTik device a special datasource program is
+ used: {MikroTik RouterOS} in Setup > Agents > Other integrations,
+ module "WiFi clients and radios".
+
+item:
+ The SSID.
+
+perfdata:
+ Number of clients, average and weakest client signal.
+
+inventory:
+ One service per SSID.

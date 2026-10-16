@@ -14,6 +14,10 @@ It includes checks for:
 - System health and crashfile detection
 - RouterOS Info: model, serial, RouterOS version, RouterBOOT firmware
   (state if a firmware upgrade is pending) and HW/SW inventory
+- WiFi per SSID: clients, signal strength and radio state, for the new
+  `wifi` driver, the legacy `wireless` driver and CAPsMAN (one controller
+  covers all its access points) and HW/SW inventory of the access points
+  managed by a CAPsMAN controller (model, serial, version)
 
 ### Requirements
 

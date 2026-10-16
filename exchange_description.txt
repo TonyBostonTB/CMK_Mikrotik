@@ -12,6 +12,8 @@ Monitors MikroTik RouterOS devices via the RouterOS API (v2, port 8729/SSL or 87
 - RouterOS Info: model, serial number, RouterOS version (with minimum version enforcement) and RouterBOOT firmware (state if an upgrade is pending)
 - HW/SW inventory: model, serial number, RouterOS version, RouterBOOT firmware
 - License expiration (CHR)
+- WiFi per SSID: connected clients, signal strength and radio state, for the new wifi driver, the legacy wireless driver (not tested) and CAPsMAN, new and legacy (one controller covers all its access points)
+- HW/SW inventory of the access points managed by a CAPsMAN controller: identity, model, serial number, RouterOS version, base MAC
 
 Requirements: CheckMK 2.4 or later, RouterOS 7.x.
 

@@ -1,5 +1,34 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [4.2.0] - 2026-10-16
+### Added
+- **WiFi service per SSID**: new agent module `wifi` (rule option "WiFi
+  clients and radios"). Reports connected clients, average and weakest
+  client signal (dBm) and the radios that broadcast the SSID. Works with
+  the new `wifi` driver (RouterOS 7.13+), the legacy `wireless` driver and
+  the legacy CAPsMAN. On a CAPsMAN controller one host covers all managed
+  access points; a radio that is not running (access point lost the
+  controller) makes the service WARN by default.
+- New check rule "MikroTik WiFi": levels for clients and signal, state for
+  radios that are down.
+- **HW/SW inventory of managed access points**: on a CAPsMAN controller
+  the `wifi` module also lists every managed access point (new CAPsMAN
+  and legacy `/caps-man`) under `networking.wlan.controller.accesspoints`
+  (same table as Aruba/Cisco WLC): identity, model, serial, RouterOS
+  version, base MAC, state.
+
+### Changed
+- Agent version string updated to 4.2.0
+
+### Upgrade notes
+- The module is off in existing rules. Enable "WiFi clients and radios"
+  in the special agent rule of the CAPsMAN controller (or standalone access
+  point) and run a service discovery.
+- `wifi` is opt-in: the agent default "all" (a rule with no module ticked)
+  does not include it, it only runs when selected explicitly.
+- The new `wifi` driver does not report clients via SNMP, so this is the
+  only way to monitor clients of WiFi 6 (ax) MikroTik access points.
+
 ## [4.1.0] - 2026-10-13
 ### Added
 - **RouterOS Info**: the agent module `board` now also queries

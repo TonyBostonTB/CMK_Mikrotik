@@ -217,6 +217,14 @@ def _parameter_form() -> Dictionary:
                                 prefill=DefaultValue(False),
                             ),
                         ),
+                        # required=False: rules stored before 4.2.0 lack it
+                        "wifi": DictElement(
+                            required=False,
+                            parameter_form=BooleanChoice(
+                                title=Title("WiFi clients and radios (also CAPsMAN)"),
+                                prefill=DefaultValue(False),
+                            ),
+                        ),
                         # Firewall is a nested dict because it has a sub-option
                         # (show-disabled) beyond a simple enabled/disabled flag.
                         "firewall": DictElement(

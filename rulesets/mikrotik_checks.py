@@ -265,3 +265,69 @@ rule_spec_mikrotik_ipsec = CheckParameters(
         },
     ),
 )
+
+# ---------------------------------------------------------------------------
+# WiFi per SSID
+# ---------------------------------------------------------------------------
+
+rule_spec_mikrotik_wifi = CheckParameters(
+    name="mikrotik_wifi",
+    title=Title("MikroTik WiFi"),
+    topic=Topic.NETWORKING,
+    # One service per SSID - on a CAPsMAN controller over all managed CAPs.
+    condition=HostAndItemCondition(item_title=Title("SSID")),
+    parameter_form=lambda: Dictionary(
+        help_text=Help(
+            "Activate special agent mikrotik with the module 'WiFi' to use this.",
+        ),
+        elements={
+            "clients_upper": DictElement(
+                required=False,
+                parameter_form=SimpleLevels(
+                    title=Title("Upper levels for connected clients"),
+                    level_direction=LevelDirection.UPPER,
+                    form_spec_template=Integer(),
+                    prefill_fixed_levels=DefaultValue((50, 100)),
+                ),
+            ),
+            "clients_lower": DictElement(
+                required=False,
+                parameter_form=SimpleLevels(
+                    title=Title("Lower levels for connected clients"),
+                    level_direction=LevelDirection.LOWER,
+                    form_spec_template=Integer(),
+                    prefill_fixed_levels=DefaultValue((1, 0)),
+                ),
+            ),
+            "signal_avg_lower": DictElement(
+                required=False,
+                parameter_form=SimpleLevels(
+                    title=Title("Lower levels for the average client signal"),
+                    level_direction=LevelDirection.LOWER,
+                    form_spec_template=Integer(unit_symbol="dBm"),
+                    prefill_fixed_levels=DefaultValue((-70, -80)),
+                ),
+            ),
+            "signal_min_lower": DictElement(
+                required=False,
+                parameter_form=SimpleLevels(
+                    title=Title("Lower levels for the weakest client signal"),
+                    level_direction=LevelDirection.LOWER,
+                    form_spec_template=Integer(unit_symbol="dBm"),
+                    prefill_fixed_levels=DefaultValue((-80, -90)),
+                ),
+            ),
+            "interface_down_state": DictElement(
+                required=False,
+                parameter_form=ServiceState(
+                    title=Title("State if a radio of the SSID is down"),
+                    help_text=Help(
+                        "On a CAPsMAN controller a radio is down when its access "
+                        "point lost the connection to the controller.",
+                    ),
+                    prefill=DefaultValue(ServiceState.WARN),
+                ),
+            ),
+        },
+    ),
+)

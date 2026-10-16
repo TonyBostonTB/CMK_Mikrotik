@@ -66,6 +66,7 @@ class _Params:
     ipsec: bool = False
     file: bool = False
     license: bool = False
+    wifi: bool = False
     firewall: _FirewallConfig = field(default_factory=_FirewallConfig)
 
     @classmethod
@@ -104,6 +105,7 @@ class _Params:
             ipsec=bool(infos.get("ipsec", False)),
             file=bool(infos.get("file", False)),
             license=bool(infos.get("license", False)),
+            wifi=bool(infos.get("wifi", False)),
             firewall=_parse_firewall(fw_raw) if fw_raw else _FirewallConfig(),
         )
 
@@ -113,7 +115,9 @@ class _Params:
 # ---------------------------------------------------------------------------
 
 # Modules that map directly to a single boolean flag in the params model.
-_SIMPLE_MODULES = ("bgp", "ospf", "vrrp", "health", "board", "ipsec", "file", "license")
+_SIMPLE_MODULES = (
+    "bgp", "ospf", "vrrp", "health", "board", "ipsec", "file", "license", "wifi",
+)
 
 
 def _mikrotik_commands(

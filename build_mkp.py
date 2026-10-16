@@ -22,7 +22,7 @@ import tarfile
 import time
 
 PACKAGE_NAME = "mikrotik"
-VERSION = "4.1.0"
+VERSION = "4.2.0"
 OUTPUT = f"{PACKAGE_NAME}-{VERSION}.mkp"
 
 # (source path relative to repo root, archive path inside cmk_addons_plugins.tar)
@@ -40,6 +40,7 @@ ADDON_FILES: list[tuple[str, str]] = [
     ("agent_based/mikrotik_power.py",    "mikrotik/agent_based/mikrotik_power.py"),
     ("agent_based/mikrotik_psu.py",      "mikrotik/agent_based/mikrotik_psu.py"),
     ("agent_based/mikrotik_vrrp.py",     "mikrotik/agent_based/mikrotik_vrrp.py"),
+    ("agent_based/mikrotik_wifi.py",     "mikrotik/agent_based/mikrotik_wifi.py"),
     # check man pages
     ("checkman/mikrotik_bgp",            "mikrotik/checkman/mikrotik_bgp"),
     ("checkman/mikrotik_board",          "mikrotik/checkman/mikrotik_board"),
@@ -51,6 +52,7 @@ ADDON_FILES: list[tuple[str, str]] = [
     ("checkman/mikrotik_power",          "mikrotik/checkman/mikrotik_power"),
     ("checkman/mikrotik_psu",            "mikrotik/checkman/mikrotik_psu"),
     ("checkman/mikrotik_vrrp",           "mikrotik/checkman/mikrotik_vrrp"),
+    ("checkman/mikrotik_wifi",           "mikrotik/checkman/mikrotik_wifi"),
     # data collection agent (executed on the CheckMK server, must be executable)
     ("libexec/agent_mikrotik",           "mikrotik/libexec/agent_mikrotik"),
     # rule spec definitions — replaces legacy wato/ files, requires CMK 2.5+
@@ -75,7 +77,7 @@ SUMMARY = (
     "MikroTik RouterOS monitoring: BGP, OSPF, VRRP; fan, PSU, temperature and "
     "per-PSU power; RouterOS Info and HW/SW inventory (model, serial number, "
     "RouterOS version, RouterBOOT firmware); CHR license expiry; IPsec and "
-    "firewall filter rules; file age and crashfile handling. "
+    "firewall filter rules; WiFi clients, signal and radios per SSID, also via CAPsMAN; file age and crashfile handling. "
     "Requires CheckMK 2.4.0 or later. Full changelog: CHANGELOG.MD in the "
     "source repository."
 )
