@@ -4,20 +4,27 @@ catalog: hw/network/mikrotik
 license: GPL
 distribution: check_mk
 description:
- Checks OSPF of a MikroTik Router
+ Checks the OSPF adjacencies of a MikroTik Router with one neighbor
 
- This check will be {OK} if an OSPF instance is in state "Full" or
- "2-Way", {CRIT} if state is "Down", {WARN} in any other case.
+ A neighbor router-id can have several adjacencies: one per interface and,
+ on RouterOS 7, one per OSPF version (OSPFv2 and OSPFv3). Every adjacency
+ is checked on its own, the service gets the worst state. On RouterOS 6
+ only OSPFv2 neighbors are reported.
+
+ An adjacency is {OK} in state "Full" or "2-Way" ("TwoWay" in RouterOS
+ 7), {CRIT} in state "Down", {WARN} in state "Attempt", "Init", "ExStart",
+ "Exchange" or "Loading", and {UNKNOWN} in any other state. The details
+ list every adjacency with address, interface and OSPF instance.
 
  To connect to the MikroTik device a special datasource program is
  used (SNMP won't report this information): {MikroTik RouterOS} in
  Setup > Agents> Other integrations > Hardware
 
 item:
- The OSPF router-id.
+ The router-id of the OSPF neighbor.
 
 perfdata:
  None
 
 inventory:
- One service per OSPF instance
+ One service per OSPF neighbor router-id

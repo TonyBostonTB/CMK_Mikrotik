@@ -1,5 +1,32 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [4.2.1] - 2026-10-21
+### Fixed
+- **OSPF Neighbor crash**: the check crashed with a TypeError (State values
+  compared with max) as soon as one adjacency was not in an OK state (for
+  example Init). Each adjacency now yields its own
+  result, the service state is the worst of them.
+- **OSPF adjacencies lost**: a router-id that appears more than once
+  (several interfaces, on RouterOS 7 also OSPFv2 and OSPFv3) kept only its
+  last address. All
+  adjacencies of a neighbor are now monitored.
+- **OSPF state on the wrong address**: a state reported without an address
+  was stored on the address of the previous neighbor.
+
+### Changed
+- OSPF adjacency states: Full and 2-Way (TwoWay) are OK, Down is CRIT,
+  Attempt, Init, ExStart, Exchange and Loading are WARN, any other state
+  is UNKNOWN (was WARN).
+- The OSPF agent module also reports the interface and the OSPF instance
+  of each adjacency, shown in the service details and in the summary of
+  adjacencies that are not OK.
+- Agent version string updated to 4.2.1
+
+### Upgrade notes
+- No rule changes and no rediscovery needed, the service item is still the
+  neighbor router-id. Interface and instance appear once the special agent
+  of version 4.2.1 runs; older agent output is still parsed.
+
 ## [4.2.0] - 2026-10-16
 ### Added
 - **WiFi service per SSID**: new agent module `wifi` (rule option "WiFi
