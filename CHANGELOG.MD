@@ -1,15 +1,14 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
-## [4.2.1] - 2026-10-21
+## [4.3.1] - unreleased
 ### Fixed
 - **OSPF Neighbor crash**: the check crashed with a TypeError (State values
   compared with max) as soon as one adjacency was not in an OK state (for
-  example Init). Each adjacency now yields its own
-  result, the service state is the worst of them.
+  example Init). Each adjacency now yields its own result, the service
+  state is the worst of them.
 - **OSPF adjacencies lost**: a router-id that appears more than once
   (several interfaces, on RouterOS 7 also OSPFv2 and OSPFv3) kept only its
-  last address. All
-  adjacencies of a neighbor are now monitored.
+  last address. All adjacencies of a neighbor are now monitored.
 - **OSPF state on the wrong address**: a state reported without an address
   was stored on the address of the previous neighbor.
 
@@ -20,12 +19,50 @@
 - The OSPF agent module also reports the interface and the OSPF instance
   of each adjacency, shown in the service details and in the summary of
   adjacencies that are not OK.
-- Agent version string updated to 4.2.1
 
 ### Upgrade notes
 - No rule changes and no rediscovery needed, the service item is still the
   neighbor router-id. Interface and instance appear once the special agent
-  of version 4.2.1 runs; older agent output is still parsed.
+  of version 4.3.1 runs; older agent output is still parsed.
+
+## [4.3.0] - 2026-10-27
+### Added
+- **WireGuard per peer**: new agent module `wireguard` (rule option
+  "WireGuard peers", RouterOS 7). One service per peer with the age
+  of the latest handshake (WARN 5 min, CRIT 15 min by default), endpoint
+  and inbound/outbound traffic. The item is the peer comment, else its
+  name. Disabled peers are not discovered.
+- New check rule "MikroTik WireGuard": levels for the handshake age,
+  state for a peer without handshake (default CRIT) and for a disabled
+  peer (default WARN).
+
+### Changed
+- **CHR License** reworked: a paid CHR license is perpetual, so the service
+  no longer counts down to deadline-at as an expiry. It is OK with a paid
+  level (p1, p10, p-unlimited), CRIT without a license (level free) and
+  WARN if the renewal failed and upgrades are blocked (limited-upgrades).
+  Next renewal and renewal deadline are shown as details. Also discovered
+  on CHRs with level free.
+- New check rule "MikroTik CHR License" for both states (the check had no
+  rule before).
+- Special agent rule: "WiFi clients and radios" and "WireGuard peers" are
+  single checkboxes now like the other modules. Before, the optional outer
+  checkbox only added the option and an empty inner one stored it as off.
+  Rules without the keys are migrated to off.
+- Agent version string updated to 4.3.0
+
+### Fixed
+- Agent: RouterOS API values that contain `=` (base64 keys, comments with
+  `=`) were dropped from every module.
+
+### Upgrade notes
+- `wireguard` is opt-in like `wifi`: the agent default "all" does not
+  include it. Enable "WireGuard peers" in the special agent rule and run
+  a service discovery.
+- An idle tunnel only handshakes if one side sets persistent-keepalive.
+  Without it, an idle but healthy tunnel goes CRIT.
+- CHR License: the time remaining metric is gone. Run a service
+  discovery on CHRs with level free to get the License service.
 
 ## [4.2.0] - 2026-10-16
 ### Added

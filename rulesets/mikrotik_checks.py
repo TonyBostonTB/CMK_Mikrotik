@@ -331,3 +331,95 @@ rule_spec_mikrotik_wifi = CheckParameters(
         },
     ),
 )
+
+# ---------------------------------------------------------------------------
+# CHR license
+# ---------------------------------------------------------------------------
+
+rule_spec_mikrotik_license = CheckParameters(
+    name="mikrotik_license",
+    title=Title("MikroTik CHR License"),
+    topic=Topic.NETWORKING,
+    # Single service per host - no item.
+    condition=HostCondition(),
+    parameter_form=lambda: Dictionary(
+        help_text=Help(
+            "Activate special agent mikrotik with the module 'License Key (CHR)' to use this.",
+        ),
+        elements={
+            "free_state": DictElement(
+                required=False,
+                parameter_form=ServiceState(
+                    title=Title("State if the CHR has no license (level free)"),
+                    help_text=Help("The free level is limited to 1 Mbit/s upload per interface."),
+                    prefill=DefaultValue(ServiceState.CRIT),
+                ),
+            ),
+            "limited_upgrades_state": DictElement(
+                required=False,
+                parameter_form=ServiceState(
+                    title=Title("State if the license renewal failed"),
+                    help_text=Help(
+                        "The CHR did not reach the MikroTik account server before "
+                        "deadline-at. It keeps its license level, but RouterOS "
+                        "upgrades and package changes are blocked.",
+                    ),
+                    prefill=DefaultValue(ServiceState.WARN),
+                ),
+            ),
+        },
+    ),
+)
+
+# ---------------------------------------------------------------------------
+# WireGuard peers
+# ---------------------------------------------------------------------------
+
+rule_spec_mikrotik_wireguard = CheckParameters(
+    name="mikrotik_wireguard",
+    title=Title("MikroTik WireGuard"),
+    topic=Topic.NETWORKING,
+    # One service per peer - the item is the peer comment, else its name.
+    condition=HostAndItemCondition(item_title=Title("WireGuard peer")),
+    parameter_form=lambda: Dictionary(
+        help_text=Help(
+            "Activate special agent mikrotik with the module 'WireGuard' to use this.",
+        ),
+        elements={
+            "handshake_age": DictElement(
+                required=False,
+                parameter_form=SimpleLevels(
+                    title=Title("Maximum age of the latest handshake"),
+                    help_text=Help(
+                        "A handshake happens at least every two minutes while "
+                        "traffic flows. An idle tunnel only keeps handshaking if "
+                        "one side sets persistent-keepalive.",
+                    ),
+                    level_direction=LevelDirection.UPPER,
+                    form_spec_template=TimeSpan(
+                        displayed_magnitudes=[
+                            TimeMagnitude.HOUR,
+                            TimeMagnitude.MINUTE,
+                            TimeMagnitude.SECOND,
+                        ],
+                    ),
+                    prefill_fixed_levels=DefaultValue((300.0, 900.0)),
+                ),
+            ),
+            "no_handshake_state": DictElement(
+                required=False,
+                parameter_form=ServiceState(
+                    title=Title("State if the peer never had a handshake"),
+                    prefill=DefaultValue(ServiceState.CRIT),
+                ),
+            ),
+            "disabled_state": DictElement(
+                required=False,
+                parameter_form=ServiceState(
+                    title=Title("State if the peer is disabled"),
+                    prefill=DefaultValue(ServiceState.WARN),
+                ),
+            ),
+        },
+    ),
+)

@@ -1,0 +1,32 @@
+title: MikroTik WireGuard
+agents: mikrotik
+catalog: hw/network/mikrotik
+license: GPL
+distribution: check_mk
+description:
+ Age of the latest handshake and traffic per WireGuard peer of a
+ MikroTik RouterOS 7 device.
+
+ WireGuard has no connection state. While traffic flows, a handshake
+ happens at least every two minutes, so the age of the latest handshake
+ shows whether the tunnel is up. The service goes {WARN} after 5 and
+ {CRIT} after 15 minutes without a handshake by default. An idle tunnel
+ only keeps handshaking if one side sets persistent-keepalive; without
+ it, an idle but healthy tunnel ages into {CRIT}.
+
+ A peer that never had a handshake is {CRIT}, a disabled peer {WARN}
+ (both configurable). Disabled peers are not discovered.
+
+ To connect to the MikroTik device a special datasource program is
+ used: {MikroTik RouterOS} in Setup > Agents > Other integrations,
+ module "WireGuard peers".
+
+item:
+ The comment of the peer, else its name, else the first 8 characters
+ of its public key.
+
+perfdata:
+ Age of the latest handshake, inbound and outbound traffic.
+
+inventory:
+ One service per peer that is not disabled.

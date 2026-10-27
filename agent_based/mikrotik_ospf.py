@@ -38,7 +38,7 @@ def parse_mikrotik_ospf(string_table: StringTable) -> Section:
     Every "router-id" line starts a new adjacency. The same router-id
     appears once per interface and, on RouterOS 7, once per OSPF version,
     so all of its adjacencies are kept. "interface" and "instance" are
-    only sent by agent 4.2.1 and newer.
+    only sent by agent 4.3.1 and newer.
     """
     data: Section = {}
     current = None
@@ -58,6 +58,10 @@ def parse_mikrotik_ospf(string_table: StringTable) -> Section:
             continue
 
         if key in ("address", "interface", "instance", "state"):
+            if getattr(current, key):
+                # field repeats: next entry came without a router-id, skip it
+                current = None
+                continue
             setattr(current, key, value)
 
     # drop adjacencies the agent sent without a state
