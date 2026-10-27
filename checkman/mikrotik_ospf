@@ -13,8 +13,10 @@ description:
 
  An adjacency is {OK} in state "Full" or "2-Way" ("TwoWay" in RouterOS
  7), {CRIT} in state "Down", {WARN} in state "Attempt", "Init", "ExStart",
- "Exchange" or "Loading", and {UNKNOWN} in any other state. The details
- list every adjacency with address, interface and OSPF instance.
+ "Exchange" or "Loading", and {UNKNOWN} in any other state. The states
+ that count as OK can be changed with the rule {MikroTik OSPF Neighbor}.
+ The details list every adjacency with address, interface and OSPF
+ instance.
 
  To connect to the MikroTik device a special datasource program is
  used (SNMP won't report this information): {MikroTik RouterOS} in

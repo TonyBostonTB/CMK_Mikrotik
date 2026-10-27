@@ -267,6 +267,38 @@ rule_spec_mikrotik_ipsec = CheckParameters(
 )
 
 # ---------------------------------------------------------------------------
+# OSPF neighbors
+# ---------------------------------------------------------------------------
+
+rule_spec_mikrotik_ospf = CheckParameters(
+    name="mikrotik_ospf",
+    title=Title("MikroTik OSPF Neighbor"),
+    topic=Topic.NETWORKING,
+    # One service per neighbor - the item is the neighbor router-id.
+    condition=HostAndItemCondition(item_title=Title("Neighbor router-id")),
+    parameter_form=lambda: Dictionary(
+        help_text=Help(
+            "Activate special agent mikrotik with the module 'OSPF Neighbors' to use this.",
+        ),
+        elements={
+            "ok_states": DictElement(
+                required=False,
+                parameter_form=List(
+                    title=Title("Adjacency states considered OK"),
+                    help_text=Help(
+                        "Default: Full, 2-Way and TwoWay (RouterOS 7). Of the "
+                        "states not listed here, Down is CRIT, Attempt, Init, "
+                        "ExStart, Exchange and Loading are WARN and any other "
+                        "state is UNKNOWN.",
+                    ),
+                    element_template=String(),
+                ),
+            ),
+        },
+    ),
+)
+
+# ---------------------------------------------------------------------------
 # WiFi per SSID
 # ---------------------------------------------------------------------------
 

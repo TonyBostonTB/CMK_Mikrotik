@@ -1,6 +1,10 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
-## [4.3.1] - unreleased
+## [4.3.1] - 2026-10-27
+### Added
+- New check rule "MikroTik OSPF Neighbor" for the adjacency states that
+  count as OK (the check referenced the rule, but it did not exist).
+
 ### Fixed
 - **OSPF Neighbor crash**: the check crashed with a TypeError (State values
   compared with max) as soon as one adjacency was not in an OK state (for
@@ -21,7 +25,7 @@
   adjacencies that are not OK.
 
 ### Upgrade notes
-- No rule changes and no rediscovery needed, the service item is still the
+- No rediscovery needed, the service item is still the
   neighbor router-id. Interface and instance appear once the special agent
   of version 4.3.1 runs; older agent output is still parsed.
 
