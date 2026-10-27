@@ -451,7 +451,8 @@ command_set['6'] = {
                        "header"  : "mikrotik_ospf",
                        "active"  : False,
                        "command" : ["/routing/ospf/neighbor/print"],
-                       "filtered": ['router-id', 'address', 'state'],
+                       # router-id must stay first: it starts a new adjacency
+                       "filtered": ['router-id', 'instance', 'interface', 'address', 'state'],
                        "required": True,
                       },
 

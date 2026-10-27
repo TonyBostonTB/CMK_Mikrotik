@@ -1,6 +1,7 @@
 """CheckMK agent-based check plugin for MikroTik ospf monitoring."""
 
 
+from dataclasses import dataclass
 from typing import Any
 
 from cmk.agent_based.v2 import (
@@ -15,87 +16,99 @@ from cmk.agent_based.v2 import (
 )
 
 
-def parse_mikrotik_ospf(string_table: StringTable) -> dict[str, dict[str, str]]:
-    """Parse MikroTik OSPF neighbor information from agent output."""
-    data = {}
-    current_neighbor = None
+# Neighbor states that are not (yet) established; Down is CRIT,
+# anything not listed here and not in ok_states is UNKNOWN.
+WARN_STATES = {"Attempt", "Init", "ExStart", "Exchange", "Loading"}
+
+
+@dataclass
+class Adjacency:
+    address: str = ""
+    interface: str = ""
+    instance: str = ""
+    state: str = ""
+
+
+Section = dict[str, list[Adjacency]]  # router-id -> adjacencies
+
+
+def parse_mikrotik_ospf(string_table: StringTable) -> Section:
+    """Parse MikroTik OSPF neighbor information from agent output.
+
+    Every "router-id" line starts a new adjacency. The same router-id
+    appears once per interface and, on RouterOS 7, once per OSPF version,
+    so all of its adjacencies are kept. "interface" and "instance" are
+    only sent by agent 4.3.1 and newer.
+    """
+    data: Section = {}
+    current = None
 
     for line in string_table:
         if not line:
             continue
 
-        if line[0] == "router-id":
-            # New neighbor found
-            current_neighbor = line[1]
-            data[current_neighbor] = {}
+        key, value = line[0], " ".join(line[1:])
+
+        if key == "router-id":
+            current = Adjacency()
+            data.setdefault(value, []).append(current)
             continue
 
-        if current_neighbor is None:
+        if current is None:
             continue
 
-        if line[0] == "address":
-            # Store address but wait for state
-            current_address = line[1]
-            continue
+        if key in ("address", "interface", "instance", "state"):
+            if getattr(current, key):
+                # field repeats: next entry came without a router-id, skip it
+                current = None
+                continue
+            setattr(current, key, value)
 
-        if line[0] == "state":
-            # Add state information for the current address
-            if "current_address" in locals():
-                data[current_neighbor][current_address] = " ".join(line[1:])
-            else:
-                # Handle RouterOS v7 format without separate address lines
-                data[current_neighbor]["state"] = " ".join(line[1:])
+    # drop adjacencies the agent sent without a state
+    return {
+        router_id: [adj for adj in adjacencies if adj.state]
+        for router_id, adjacencies in data.items()
+        if any(adj.state for adj in adjacencies)
+    }
 
-    return data
-
-def discover_mikrotik_ospf(section: dict[str, dict[str, str]]) -> DiscoveryResult:
+def discover_mikrotik_ospf(section: Section) -> DiscoveryResult:
     """Discover all OSPF neighbors."""
     for neighbor in section:
         yield Service(item=neighbor)
 
+def _describe(adj: Adjacency) -> str:
+    where = ", ".join(part for part in (adj.interface, adj.instance) if part)
+    name = adj.address or "unknown address"
+    return f"{name} ({where})" if where else name
+
 def check_mikrotik_ospf(
     item: str,
     params: dict[str, Any],
-    section: dict[str, dict[str, str]],
+    section: Section,
 ) -> CheckResult:
-    """Check OSPF neighbor state."""
+    """Check the state of every adjacency with an OSPF neighbor."""
     if item not in section:
         yield Result(state=State.CRIT, summary="OSPF neighbor not found")
         return
 
-    neighbor_data = section[item]
+    adjacencies = section[item]
     ok_states = set(params.get("ok_states", ["Full", "TwoWay", "2-Way"]))
 
-    # Handle different data structures for RouterOS v6 and v7
-    if "state" in neighbor_data:
-        # RouterOS v7 format
-        state = neighbor_data["state"]
-        if state in ok_states:
-            yield Result(state=State.OK, summary=f"State: {state}")
-        elif state == "Down":
-            yield Result(state=State.CRIT, summary=f"State: {state} (!!)")
+    yield Result(
+        state=State.OK,
+        summary=f"{len(adjacencies)} adjacenc{'y' if len(adjacencies) == 1 else 'ies'}",
+    )
+
+    for adj in adjacencies:
+        text = f"{_describe(adj)}: {adj.state}"
+        if adj.state in ok_states:
+            yield Result(state=State.OK, notice=text)
+        elif adj.state == "Down":
+            yield Result(state=State.CRIT, summary=text)
+        elif adj.state in WARN_STATES:
+            yield Result(state=State.WARN, summary=text)
         else:
-            yield Result(state=State.WARN, summary=f"State: {state} (!)")
-    else:
-        # RouterOS v6 format with multiple addresses
-        worst_state = State.OK
-        state_details = []
-
-        for address, state in neighbor_data.items():
-            if state in ok_states:
-                state_details.append(f"{address}: {state}")
-            elif state == "Down":
-                state_details.append(f"{address}: {state} (!!)")
-                worst_state = max(worst_state, State.CRIT)
-            else:
-                state_details.append(f"{address}: {state} (!)")
-                worst_state = max(worst_state, State.WARN)
-
-        yield Result(
-            state=worst_state,
-            summary=f"States: {len(neighbor_data)} interfaces",
-            details="\n".join(state_details),
-        )
+            yield Result(state=State.UNKNOWN, summary=f"{text} (unknown state)")
 
 # Register agent section
 agent_section_mikrotik_ospf = AgentSection(
