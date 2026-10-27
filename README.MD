@@ -9,7 +9,7 @@ It includes checks for:
 - VRRP status
 - PSU, fan, and temperature sensors
 - IPsec tunnels
-- License expiration (CHR) and file age
+- CHR license (valid, no license, renewal failed) and file age
 - Firewall rules based on comment filters
 - System health and crashfile detection
 - RouterOS Info: model, serial, RouterOS version, RouterBOOT firmware
@@ -18,6 +18,7 @@ It includes checks for:
   `wifi` driver, the legacy `wireless` driver and CAPsMAN (one controller
   covers all its access points) and HW/SW inventory of the access points
   managed by a CAPsMAN controller (model, serial, version)
+- WireGuard per peer: age of the latest handshake, endpoint and traffic
 
 ### Requirements
 

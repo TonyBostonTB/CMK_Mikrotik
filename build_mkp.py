@@ -22,7 +22,7 @@ import tarfile
 import time
 
 PACKAGE_NAME = "mikrotik"
-VERSION = "4.2.0"
+VERSION = "4.3.0"
 OUTPUT = f"{PACKAGE_NAME}-{VERSION}.mkp"
 
 # (source path relative to repo root, archive path inside cmk_addons_plugins.tar)
@@ -41,6 +41,7 @@ ADDON_FILES: list[tuple[str, str]] = [
     ("agent_based/mikrotik_psu.py",      "mikrotik/agent_based/mikrotik_psu.py"),
     ("agent_based/mikrotik_vrrp.py",     "mikrotik/agent_based/mikrotik_vrrp.py"),
     ("agent_based/mikrotik_wifi.py",     "mikrotik/agent_based/mikrotik_wifi.py"),
+    ("agent_based/mikrotik_wireguard.py", "mikrotik/agent_based/mikrotik_wireguard.py"),
     # check man pages
     ("checkman/mikrotik_bgp",            "mikrotik/checkman/mikrotik_bgp"),
     ("checkman/mikrotik_board",          "mikrotik/checkman/mikrotik_board"),
@@ -48,11 +49,13 @@ ADDON_FILES: list[tuple[str, str]] = [
     ("checkman/mikrotik_file",           "mikrotik/checkman/mikrotik_file"),
     ("checkman/mikrotik_firewall",       "mikrotik/checkman/mikrotik_firewall"),
     ("checkman/mikrotik_ipsec",          "mikrotik/checkman/mikrotik_ipsec"),
+    ("checkman/mikrotik_license",        "mikrotik/checkman/mikrotik_license"),
     ("checkman/mikrotik_ospf",           "mikrotik/checkman/mikrotik_ospf"),
     ("checkman/mikrotik_power",          "mikrotik/checkman/mikrotik_power"),
     ("checkman/mikrotik_psu",            "mikrotik/checkman/mikrotik_psu"),
     ("checkman/mikrotik_vrrp",           "mikrotik/checkman/mikrotik_vrrp"),
     ("checkman/mikrotik_wifi",           "mikrotik/checkman/mikrotik_wifi"),
+    ("checkman/mikrotik_wireguard",      "mikrotik/checkman/mikrotik_wireguard"),
     # data collection agent (executed on the CheckMK server, must be executable)
     ("libexec/agent_mikrotik",           "mikrotik/libexec/agent_mikrotik"),
     # rule spec definitions — replaces legacy wato/ files, requires CMK 2.5+
@@ -76,8 +79,8 @@ CMK_PACKAGED = "2.5.0p14"
 SUMMARY = (
     "MikroTik RouterOS monitoring: BGP, OSPF, VRRP; fan, PSU, temperature and "
     "per-PSU power; RouterOS Info and HW/SW inventory (model, serial number, "
-    "RouterOS version, RouterBOOT firmware); CHR license expiry; IPsec and "
-    "firewall filter rules; WiFi clients, signal and radios per SSID, also via CAPsMAN; file age and crashfile handling. "
+    "RouterOS version, RouterBOOT firmware); CHR license state; IPsec and "
+    "firewall filter rules; WiFi clients, signal and radios per SSID, also via CAPsMAN; WireGuard peer handshake and traffic; file age and crashfile handling. "
     "Requires CheckMK 2.4.0 or later. Full changelog: CHANGELOG.MD in the "
     "source repository."
 )

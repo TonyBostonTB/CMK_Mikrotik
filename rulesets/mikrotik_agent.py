@@ -80,6 +80,12 @@ def _migrate_params(value: object) -> dict[str, object]:
             infos["firewall"] = fw
         result["infos"] = infos
 
+    # Opt-in modules added in 4.2.0 (wifi) and 4.3.0 (wireguard) are missing
+    # in older rules; they are required now, so default them to off.
+    if isinstance(result.get("infos"), dict):
+        for module in ("wifi", "wireguard"):
+            result["infos"].setdefault(module, False)
+
     return result
 
 
@@ -217,11 +223,19 @@ def _parameter_form() -> Dictionary:
                                 prefill=DefaultValue(False),
                             ),
                         ),
-                        # required=False: rules stored before 4.2.0 lack it
+                        # rules stored before 4.2.0 lack it, _migrate_params adds it
                         "wifi": DictElement(
-                            required=False,
+                            required=True,
                             parameter_form=BooleanChoice(
                                 title=Title("WiFi clients and radios (also CAPsMAN)"),
+                                prefill=DefaultValue(False),
+                            ),
+                        ),
+                        # rules stored before 4.3.0 lack it, _migrate_params adds it
+                        "wireguard": DictElement(
+                            required=True,
+                            parameter_form=BooleanChoice(
+                                title=Title("WireGuard peers"),
                                 prefill=DefaultValue(False),
                             ),
                         ),

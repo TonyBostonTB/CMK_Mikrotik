@@ -1,5 +1,44 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [4.3.0] - 2026-10-27
+### Added
+- **WireGuard per peer**: new agent module `wireguard` (rule option
+  "WireGuard peers", RouterOS 7). One service per peer with the age
+  of the latest handshake (WARN 5 min, CRIT 15 min by default), endpoint
+  and inbound/outbound traffic. The item is the peer comment, else its
+  name. Disabled peers are not discovered.
+- New check rule "MikroTik WireGuard": levels for the handshake age,
+  state for a peer without handshake (default CRIT) and for a disabled
+  peer (default WARN).
+
+### Changed
+- **CHR License** reworked: a paid CHR license is perpetual, so the service
+  no longer counts down to deadline-at as an expiry. It is OK with a paid
+  level (p1, p10, p-unlimited), CRIT without a license (level free) and
+  WARN if the renewal failed and upgrades are blocked (limited-upgrades).
+  Next renewal and renewal deadline are shown as details. Also discovered
+  on CHRs with level free.
+- New check rule "MikroTik CHR License" for both states (the check had no
+  rule before).
+- Special agent rule: "WiFi clients and radios" and "WireGuard peers" are
+  single checkboxes now like the other modules. Before, the optional outer
+  checkbox only added the option and an empty inner one stored it as off.
+  Rules without the keys are migrated to off.
+- Agent version string updated to 4.3.0
+
+### Fixed
+- Agent: RouterOS API values that contain `=` (base64 keys, comments with
+  `=`) were dropped from every module.
+
+### Upgrade notes
+- `wireguard` is opt-in like `wifi`: the agent default "all" does not
+  include it. Enable "WireGuard peers" in the special agent rule and run
+  a service discovery.
+- An idle tunnel only handshakes if one side sets persistent-keepalive.
+  Without it, an idle but healthy tunnel goes CRIT.
+- CHR License: the time remaining metric is gone. Run a service
+  discovery on CHRs with level free to get the License service.
+
 ## [4.2.0] - 2026-10-16
 ### Added
 - **WiFi service per SSID**: new agent module `wifi` (rule option "WiFi

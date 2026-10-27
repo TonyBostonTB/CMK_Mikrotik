@@ -71,11 +71,11 @@ OPTIONS:
   -i MODULES, --modules MODULES Modules to query. This is a comma separated list
                                 which may contain the keywords "bgp", "ospf",
                                 "health", "board", "vrrp", "ipsec", "chains",
-                                "file", "license" and "wifi".
+                                "file", "license", "wifi" and "wireguard".
                                 You can define to use only few of them to optimize
                                 performance. The default is "all", which covers
-                                every module except "wifi" (opt-in, name it
-                                explicitly).
+                                every module except "wifi" and "wireguard"
+                                (opt-in, name them explicitly).
 
 """)
 
@@ -248,8 +248,9 @@ def open_socket(dst, port, secure=True, certcheck=True):
 # convert list returned by api to a dict
 # before:  ['!re', '=.id=*391', '=spi=0xF598639', '=src-address=77.220.238.235', ...]
 # after:   {'.id': '*391', 'spi': '0xF598639', 'src-address': '77.220.238.235', ... }
+# values may contain '=' themselves (base64 keys, comments), so split twice only
 def list2dict(list):
-    return {item.split('=')[1]: item.split('=')[2] for item in list if len(item.split('=')) == 3 }
+    return {item.split('=', 2)[1]: item.split('=', 2)[2] for item in list if len(item.split('=', 2)) == 3 }
 
 # send command to api and return answer as list of dicts
 # readSentence returns one sentence only per connect, therefore need to loop
@@ -388,6 +389,27 @@ def wifi_lines(api):
     clean = lambda field: field.replace('|', '/').replace('\n', ' ')
     return ['|'.join(clean(field) for field in line) for line in lines]
 
+# wireguard section, pipe separated because comments may contain spaces:
+#   peer|<interface>|<name>|<comment>|<public key>|<disabled>|<endpoint>|<last handshake>|<rx bytes>|<tx bytes>
+# last handshake is passed on as RouterOS reports it (e.g. 1m9s) and is empty
+# if the peer never had a handshake. Older RouterOS 7 releases have no peer name.
+def wireguard_lines(api):
+    lines = []
+    for peer in wifi_rows(api, "/interface/wireguard/peers/print") or []:
+        if not peer.get('interface'):
+            continue
+        address = peer.get('current-endpoint-address') or peer.get('endpoint-address', '')
+        port = peer.get('current-endpoint-port') or peer.get('endpoint-port', '')
+        endpoint = '%s:%s' % (address, port) if address and port not in ('', '0') else address
+        lines.append(['peer', peer['interface'], peer.get('name', ''),
+                      peer.get('comment', ''), peer.get('public-key', ''),
+                      peer.get('disabled', 'false'), endpoint,
+                      peer.get('last-handshake', ''),
+                      peer.get('rx', ''), peer.get('tx', '')])
+
+    clean = lambda field: field.replace('|', '/').replace('\n', ' ')
+    return ['|'.join(clean(field) for field in line) for line in lines]
+
 # command line options
 short_options = 'h:u:p:nc:c:i:r:t'
 long_options  = [ 'help', 'user=', 'pass=', 'no-ssl', 'connect=', 'debug', 'modules=', 'rest', 'skip-cert-check' ]
@@ -487,7 +509,7 @@ command_set['6'] = {
 }
 
 # modules that "all" does not include - they only run when named in --modules
-OPT_IN_MODULES = ("wifi",)
+OPT_IN_MODULES = ("wifi", "wireguard")
 
 # wifi: one entry per RouterOS wireless driver. Devices only know the menus
 # of the installed driver; the others answer with a trap and are skipped.
@@ -514,6 +536,13 @@ command_set['7']['bgp']= {
                        "command"  : ["/routing/bgp/connection/print"],
                        "filtered" : ['name', 'established', 'remote.as', 'remote.address'],
                        "required" : True
+                      }
+
+# WireGuard exists since RouterOS 7, the command is in wireguard_lines
+command_set['7']['wireguard'] = {
+                       "header"   : "mikrotik_wireguard",
+                       "active"   : False,
+                       "command"  : [],
                       }
 
 for o,a in opts:
@@ -596,7 +625,7 @@ if not restful:
 
 # special agent header
 print ("<<<check_mk>>>")
-print ("Version: 4.2.0-mikrotik_agent")
+print ("Version: 4.3.0-mikrotik_agent")
 
 # detect firmware version and set commands
 version=myapi(["/system/resource/print"])[0]['version'].split('.')[0]
@@ -657,6 +686,14 @@ for module in command_options.keys():
         lines = wifi_lines(myapi)
         if lines:
             print('<<<mikrotik_wifi:sep(124)>>>')
+            print('\n'.join(lines))
+            print('<<<>>>')
+        continue
+
+    if module == "wireguard":
+        lines = wireguard_lines(myapi)
+        if lines:
+            print('<<<mikrotik_wireguard:sep(124)>>>')
             print('\n'.join(lines))
             print('<<<>>>')
         continue

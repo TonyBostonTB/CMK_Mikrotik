@@ -67,6 +67,7 @@ class _Params:
     file: bool = False
     license: bool = False
     wifi: bool = False
+    wireguard: bool = False
     firewall: _FirewallConfig = field(default_factory=_FirewallConfig)
 
     @classmethod
@@ -106,6 +107,7 @@ class _Params:
             file=bool(infos.get("file", False)),
             license=bool(infos.get("license", False)),
             wifi=bool(infos.get("wifi", False)),
+            wireguard=bool(infos.get("wireguard", False)),
             firewall=_parse_firewall(fw_raw) if fw_raw else _FirewallConfig(),
         )
 
@@ -117,6 +119,7 @@ class _Params:
 # Modules that map directly to a single boolean flag in the params model.
 _SIMPLE_MODULES = (
     "bgp", "ospf", "vrrp", "health", "board", "ipsec", "file", "license", "wifi",
+    "wireguard",
 )
 
 

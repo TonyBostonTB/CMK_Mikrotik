@@ -1,0 +1,24 @@
+title: MikroTik CHR License
+agents: mikrotik
+catalog: hw/network/mikrotik
+license: GPL
+distribution: check_mk
+description:
+ License state of a MikroTik Cloud Hosted Router (CHR).
+
+ A paid CHR license (p1, p10, p-unlimited) is perpetual. The CHR has
+ to reach the MikroTik account server before {deadline-at} to renew
+ it. If that fails, the router keeps its license level, but RouterOS
+ upgrades and package changes are blocked ({limited-upgrades: yes}).
+
+ {OK}: paid license level. {CRIT}: no license (level {free}, 1 Mbit/s
+ upload per interface). {WARN}: renewal failed, upgrades blocked. Both
+ states are configurable. Next renewal and renewal deadline are shown
+ as details.
+
+ To connect to the MikroTik device a special datasource program is
+ used: {MikroTik RouterOS} in Setup > Agents > Other integrations,
+ module "License Key (CHR)".
+
+inventory:
+ One service on a CHR. RouterBOARD devices are not discovered.
