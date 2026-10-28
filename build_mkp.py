@@ -70,7 +70,7 @@ ADDON_FILES: list[tuple[str, str]] = [
 
 # CheckMK version this release was built and tested on. Shown on the Exchange
 # as "Built on Checkmk version" - update it with every release.
-CMK_PACKAGED = "2.5.0p14"
+CMK_PACKAGED = "2.5.0p17"
 
 # Version description shown on the Checkmk Exchange. The Exchange shows it as
 # plain text: line breaks collapse, Markdown is not rendered and ` ' " are
