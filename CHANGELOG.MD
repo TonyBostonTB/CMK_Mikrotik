@@ -1,5 +1,19 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [4.3.2] - 2026-10-28
+### Fixed
+- **Firewall Rules double checkboxes**: "Enable firewall monitoring" and
+  "Show disabled rules" showed two checkboxes each (one to set the option,
+  one for its value). Both options are now always present with a single
+  checkbox, like the WiFi and WireGuard options.
+- **Legacy rules with firewall enabled**: rules stored with the old list of
+  modules turned "firewall" into a plain flag instead of the Firewall Rules
+  options. They now migrate to "Enable firewall monitoring" on.
+
+### Upgrade notes
+- Existing rules without these options are read as off (same behavior as
+  before). No rediscovery needed.
+
 ## [4.3.1] - 2026-10-27
 ### Added
 - New check rule "MikroTik OSPF Neighbor" for the adjacency states that

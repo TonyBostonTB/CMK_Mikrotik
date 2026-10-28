@@ -71,12 +71,18 @@ def _migrate_params(value: object) -> dict[str, object]:
     # Convert infos from legacy list-of-names to dict.
     if isinstance(result.get("infos"), list):
         result["infos"] = {k: True for k in result["infos"] if isinstance(k, str)}
-    elif isinstance(result.get("infos"), dict):
+    if isinstance(result.get("infos"), dict):
         infos = dict(result["infos"])
+        # The legacy list form turns "firewall" into True; the form needs a dict.
+        if infos.get("firewall") is True:
+            infos["firewall"] = {"enabled": True}
         if isinstance(infos.get("firewall"), dict):
             fw = dict(infos["firewall"])
             if "show-disabled" in fw:
                 fw["show_disabled"] = fw.pop("show-disabled")
+            # Optional before 4.3.2, required now; a missing key meant off.
+            fw.setdefault("enabled", False)
+            fw.setdefault("show_disabled", False)
             infos["firewall"] = fw
         result["infos"] = infos
 
@@ -241,20 +247,22 @@ def _parameter_form() -> Dictionary:
                         ),
                         # Firewall is a nested dict because it has a sub-option
                         # (show-disabled) beyond a simple enabled/disabled flag.
+                        # Both sub-options are required so each shows one
+                        # checkbox; _migrate_params fills them in older rules.
                         "firewall": DictElement(
                             required=False,
                             parameter_form=Dictionary(
                                 title=Title("Firewall Rules"),
                                 elements={
                                     "enabled": DictElement(
-                                        required=False,
+                                        required=True,
                                         parameter_form=BooleanChoice(
                                             title=Title("Enable firewall monitoring"),
                                             prefill=DefaultValue(False),
                                         ),
                                     ),
                                     "show_disabled": DictElement(
-                                        required=False,
+                                        required=True,
                                         parameter_form=BooleanChoice(
                                             title=Title("Show disabled rules"),
                                             prefill=DefaultValue(False),
