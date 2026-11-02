@@ -1,5 +1,26 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [Unreleased]
+### Added
+- **Metric definitions, graphs and Perf-O-Meters** (new file
+  graphing/mikrotik.py, contributed by Klaus Paulitsch):
+  - File age and PoE Consumption now use the Checkmk metrics age and
+    power, so the standard graphs and Perf-O-Meters appear.
+  - Firewall Filter: packets metric with title and unit, graph.
+  - BGP: titles and units for the update counters, graph BGP updates.
+  - WiFi: metrics for clients and signal, Perf-O-Meter for connected
+    clients, graph WiFi client signal.
+  - WireGuard: metric for the handshake age, graph with levels.
+- Translations only apply to the check plugins of this package; generic
+  metric names (firewall packets, BGP counters) are renamed to
+  names with the prefix mikrotik so they cannot clash with other
+  extensions.
+
+### Upgrade notes
+- No rediscovery needed. Graphs of the renamed metrics (file age, PoE,
+  firewall packets, BGP counters) start anew, the old values stay
+  in the old RRD files.
+
 ## [4.3.3] - 2026-11-02
 ### Fixed
 - **REST API always used HTTP**: with the RESTful API the agent connected
