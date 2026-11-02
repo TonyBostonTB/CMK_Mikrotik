@@ -14,16 +14,19 @@
 # see package description and ~/local/share/doc/check_mk/mikrotik
 # for details and maintainer
 #
-# check_mk is free software;  you can redistribute it and/or modify it
-# under the  terms of the  GNU General Public License  as published by
-# the Free Software Foundation in version 2.  check_mk is  distributed
-# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
-# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
-# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
-# tails. You should have  received  a copy of the  GNU  General Public
-# License along with GNU Make; see the file  COPYING.  If  not,  write
-# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
-# Boston, MA 02110-1301 USA.
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3 as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+# Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# SPDX-License-Identifier: GPL-3.0-only
 
 
 import sys, posix, time, binascii, socket, select, ssl, getopt, hashlib, re
@@ -58,14 +61,14 @@ ARGUMENTS:
 
 OPTIONS:
   -h, --help                    Show this help message and exit
-  -n, --no-ssl                     SSL to connect to API.
+  -n, --no-ssl                  Do not use SSL/TLS (RouterOS API and REST)
   -t, --skip-cert-check         Do not make certificate verification
   -r, --rest                    Use RESTful API to connect to device
                                 (default: RouterOS API)
   -c PORT, --connect PORT       Connect to this port. The defaults:
                                 - 8728 (RouterOS API no SSL)
                                 - 8729 (RouterOS API SSL)
-                                - 444 (Rest API)
+                                - 443 (REST API, 80 with --no-ssl)
   --debug                       Debug mode: write some debug messages,
                                 let Python exceptions come through
   -i MODULES, --modules MODULES Modules to query. This is a comma separated list
@@ -268,7 +271,7 @@ def myapi(command):
        headers['user-agent'] = agent
        session.auth          = (user, password)
 
-       protocol='http' if ssl else 'https'
+       protocol = 'https' if secure else 'http'
        urlbase = '%s://%s:%s/rest' % (protocol, host, port)
        url     = '%s%s' % (urlbase, command[0].replace('/print',''))
 
@@ -626,7 +629,7 @@ if not restful:
 
 # special agent header
 print ("<<<check_mk>>>")
-print ("Version: 4.3.2-mikrotik_agent")
+print ("Version: 4.3.3-mikrotik_agent")
 
 # detect firmware version and set commands
 version=myapi(["/system/resource/print"])[0]['version'].split('.')[0]

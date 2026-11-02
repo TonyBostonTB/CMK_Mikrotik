@@ -91,7 +91,6 @@ def discover_mikrotik_firewall(section: dict[str, dict[str, Any]]) -> DiscoveryR
 
 def check_mikrotik_firewall(
     item: str,
-    params: dict[str, Any],  # noqa: ARG001
     section: dict[str, dict[str, Any]],
 ) -> CheckResult:
     """Check firewall rule traffic and status."""
@@ -169,6 +168,4 @@ check_plugin_mikrotik_firewall = CheckPlugin(
     service_name="Firewall Filter %s",
     discovery_function=discover_mikrotik_firewall,
     check_function=check_mikrotik_firewall,
-    check_default_parameters={},
-    check_ruleset_name="mikrotik_firewall",
 )

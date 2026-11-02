@@ -48,7 +48,6 @@ def discover_mikrotik_bgp(section: dict[str, dict[str, str]]) -> DiscoveryResult
 
 def check_mikrotik_bgp(
     item: str,
-    params: dict,  # noqa: ARG001
     section: dict[str, dict[str, str]],
 ) -> CheckResult:
     """Check the state of a specific BGP session."""
@@ -100,6 +99,4 @@ check_plugin_mikrotik_bgp = CheckPlugin(
     service_name="BGP %s",
     discovery_function=discover_mikrotik_bgp,
     check_function=check_mikrotik_bgp,
-    check_default_parameters={},
-    check_ruleset_name="mikrotik_bgp",
 )

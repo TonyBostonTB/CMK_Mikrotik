@@ -1,5 +1,22 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [4.3.3] - 2026-11-02
+### Fixed
+- **REST API always used HTTP**: with the RESTful API the agent connected
+  via plain HTTP, even with SSL enabled in the rule, and sent the
+  credentials unencrypted. It now uses HTTPS unless SSL mode is "no SSL".
+- **Rule sets that did not exist**: the BGP, VRRP and Firewall Filter
+  checks referenced check rules that the package does not provide. These
+  checks have no parameters and no longer reference a rule.
+- **License header**: the agent header said GPL version 2, the package is
+  licensed under GPL version 3 only (see LICENSE).
+
+### Upgrade notes
+- REST API on port 80 only worked because of the HTTP bug. Such rules
+  need SSL mode "no SSL", or the device needs the www-ssl service and
+  port 443.
+- No rediscovery needed.
+
 ## [4.3.2] - 2026-10-28
 ### Fixed
 - **Firewall Rules double checkboxes**: "Enable firewall monitoring" and

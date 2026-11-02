@@ -22,7 +22,7 @@ import tarfile
 import time
 
 PACKAGE_NAME = "mikrotik"
-VERSION = "4.3.2"
+VERSION = "4.3.3"
 OUTPUT = f"{PACKAGE_NAME}-{VERSION}.mkp"
 
 # (source path relative to repo root, archive path inside cmk_addons_plugins.tar)

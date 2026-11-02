@@ -1,8 +1,6 @@
 """CheckMK agent-based check plugin for MikroTik vrrp monitoring."""
 
 
-from typing import Any
-
 from cmk.agent_based.v2 import (
     AgentSection,
     CheckPlugin,
@@ -41,7 +39,6 @@ def discover_mikrotik_vrrp(section: dict[str, dict[str, str]]) -> DiscoveryResul
 
 def check_mikrotik_vrrp(
     item: str,
-    params: dict[str, Any],  # noqa: ARG001
     section: dict[str, dict[str, str]],
 ) -> CheckResult:
     """Check VRRP instance status."""
@@ -102,6 +99,4 @@ check_plugin_mikrotik_vrrp = CheckPlugin(
     service_name="VRRP %s",
     discovery_function=discover_mikrotik_vrrp,
     check_function=check_mikrotik_vrrp,
-    check_default_parameters={},
-    check_ruleset_name="mikrotik_vrrp",
 )
