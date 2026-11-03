@@ -74,10 +74,10 @@ OPTIONS:
   -i MODULES, --modules MODULES Modules to query. This is a comma separated list
                                 which may contain the keywords "bgp", "ospf",
                                 "health", "board", "vrrp", "ipsec", "chains",
-                                "file", "license", "wifi" and "wireguard".
+                                "file", "license", "wifi", "wireguard" and "ntp".
                                 You can define to use only few of them to optimize
                                 performance. The default is "all", which covers
-                                every module except "wifi" and "wireguard"
+                                every module except "wifi", "wireguard" and "ntp"
                                 (opt-in, name them explicitly).
 
 """)
@@ -513,7 +513,7 @@ command_set['6'] = {
 }
 
 # modules that "all" does not include - they only run when named in --modules
-OPT_IN_MODULES = ("wifi", "wireguard")
+OPT_IN_MODULES = ("wifi", "wireguard", "ntp")
 
 # wifi: one entry per RouterOS wireless driver. Devices only know the menus
 # of the installed driver; the others answer with a trap and are skipped.
@@ -547,6 +547,14 @@ command_set['7']['wireguard'] = {
                        "header"   : "mikrotik_wireguard",
                        "active"   : False,
                        "command"  : [],
+                      }
+
+# NTP client of RouterOS 7 (status, synced-server, synced-stratum,
+# system-offset, freq-drift); printed as key value lines
+command_set['7']['ntp'] = {
+                       "header"   : "mikrotik_ntp",
+                       "active"   : False,
+                       "command"  : ["/system/ntp/client/print"],
                       }
 
 for o,a in opts:

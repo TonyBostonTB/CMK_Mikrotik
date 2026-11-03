@@ -1,0 +1,25 @@
+title: MikroTik NTP Client
+agents: mikrotik
+catalog: hw/network/mikrotik
+license: GPL
+distribution: check_mk
+description:
+ NTP client of a MikroTik RouterOS 7 device ({/system/ntp/client}).
+
+ Reported: synchronisation status ({WARN} if not {synchronized}), the
+ server the device is synchronized with, the absolute time offset
+ (default {WARN} at 200 ms, {CRIT} at 500 ms) and the stratum (default
+ {WARN} at 10, {CRIT} at 15). Mode, servers, VRF and frequency drift are
+ shown in the details. The API reports the offset as a plain number in
+ milliseconds. A disabled NTP client is {WARN}. Levels and states via the
+ rule {MikroTik NTP Client}.
+
+ To connect to the MikroTik device a special datasource program is
+ used: {MikroTik RouterOS} in Setup > Agents > Other integrations,
+ module "NTP client". The module is opt-in, "all" does not include it.
+
+perfdata:
+ Absolute time offset with the WARN/CRIT levels.
+
+inventory:
+ One service if the NTP client is enabled.
