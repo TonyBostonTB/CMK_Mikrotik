@@ -58,6 +58,8 @@ ADDON_FILES: list[tuple[str, str]] = [
     ("checkman/mikrotik_wireguard",      "mikrotik/checkman/mikrotik_wireguard"),
     # data collection agent (executed on the CheckMK server, must be executable)
     ("libexec/agent_mikrotik",           "mikrotik/libexec/agent_mikrotik"),
+    # metric definitions, translations, graphs and Perf-O-Meters
+    ("graphing/mikrotik.py",             "mikrotik/graphing/mikrotik.py"),
     # rule spec definitions — replaces legacy wato/ files, requires CMK 2.5+
     ("rulesets/mikrotik_agent.py",       "mikrotik/rulesets/mikrotik_agent.py"),
     ("rulesets/mikrotik_checks.py",      "mikrotik/rulesets/mikrotik_checks.py"),
