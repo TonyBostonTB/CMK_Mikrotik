@@ -89,7 +89,7 @@ def _migrate_params(value: object) -> dict[str, object]:
     # Opt-in modules added in 4.2.0 (wifi), 4.3.0 (wireguard) and later (ntp)
     # are missing in older rules; they are required now, so default them to off.
     if isinstance(result.get("infos"), dict):
-        for module in ("wifi", "wireguard", "ntp"):
+        for module in ("wifi", "wireguard", "ntp", "pools"):
             result["infos"].setdefault(module, False)
 
     return result
@@ -250,6 +250,14 @@ def _parameter_form() -> Dictionary:
                             required=True,
                             parameter_form=BooleanChoice(
                                 title=Title("NTP client"),
+                                prefill=DefaultValue(False),
+                            ),
+                        ),
+                        # rules stored before it was added lack it, _migrate_params adds it
+                        "pools": DictElement(
+                            required=True,
+                            parameter_form=BooleanChoice(
+                                title=Title("IP pools (usage of DHCP/PPP pools)"),
                                 prefill=DefaultValue(False),
                             ),
                         ),

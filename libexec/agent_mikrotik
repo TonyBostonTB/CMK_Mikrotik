@@ -74,10 +74,12 @@ OPTIONS:
   -i MODULES, --modules MODULES Modules to query. This is a comma separated list
                                 which may contain the keywords "bgp", "ospf",
                                 "health", "board", "vrrp", "ipsec", "chains",
-                                "file", "license", "wifi", "wireguard" and "ntp".
+                                "file", "license", "wifi", "wireguard", "ntp"
+                                and "pools".
                                 You can define to use only few of them to optimize
                                 performance. The default is "all", which covers
-                                every module except "wifi", "wireguard" and "ntp"
+                                every module except "wifi", "wireguard", "ntp"
+                                and "pools"
                                 (opt-in, name them explicitly).
 
 """)
@@ -413,6 +415,29 @@ def wireguard_lines(api):
     clean = lambda field: field.replace('|', '/').replace('\n', ' ')
     return ['|'.join(clean(field) for field in line) for line in lines]
 
+# IP pools, pipe separated (ranges contain commas):
+#   pool|<name>|<ranges>|<next-pool>|<used addresses>
+# The used addresses are counted here from /ip/pool/used, the leases
+# themselves are not passed on.
+def pool_lines(api):
+    pools = wifi_rows(api, "/ip/pool/print")
+    if not pools:
+        return []
+    used = {}
+    for row in wifi_rows(api, "/ip/pool/used/print") or []:
+        name = row.get('pool', '')
+        used[name] = used.get(name, 0) + 1
+    lines = []
+    for pool in pools:
+        name = pool.get('name')
+        if not name:
+            continue
+        lines.append(['pool', name, pool.get('ranges', ''),
+                      pool.get('next-pool', ''), str(used.get(name, 0))])
+
+    clean = lambda field: field.replace('|', '/').replace('\n', ' ')
+    return ['|'.join(clean(field) for field in line) for line in lines]
+
 # command line options
 short_options = 'h:u:p:nc:c:i:r:t'
 long_options  = [ 'help', 'user=', 'pass=', 'no-ssl', 'connect=', 'debug', 'modules=', 'rest', 'skip-cert-check' ]
@@ -513,7 +538,7 @@ command_set['6'] = {
 }
 
 # modules that "all" does not include - they only run when named in --modules
-OPT_IN_MODULES = ("wifi", "wireguard", "ntp")
+OPT_IN_MODULES = ("wifi", "wireguard", "ntp", "pools")
 
 # wifi: one entry per RouterOS wireless driver. Devices only know the menus
 # of the installed driver; the others answer with a trap and are skipped.
@@ -545,6 +570,13 @@ command_set['7']['bgp']= {
 # WireGuard exists since RouterOS 7, the command is in wireguard_lines
 command_set['7']['wireguard'] = {
                        "header"   : "mikrotik_wireguard",
+                       "active"   : False,
+                       "command"  : [],
+                      }
+
+# IP pools (DHCP, PPP, hotspot); the commands are in pool_lines
+command_set['7']['pools'] = {
+                       "header"   : "mikrotik_pool",
                        "active"   : False,
                        "command"  : [],
                       }
@@ -706,6 +738,15 @@ for module in command_options.keys():
         lines = wireguard_lines(myapi)
         if lines:
             print('<<<mikrotik_wireguard:sep(124)>>>')
+            print('\n'.join(lines))
+            print('<<<>>>')
+        continue
+
+    # IP pools: /ip/pool and the count of /ip/pool/used, see pool_lines
+    if module == "pools":
+        lines = pool_lines(myapi)
+        if lines:
+            print('<<<mikrotik_pool:sep(124)>>>')
             print('\n'.join(lines))
             print('<<<>>>')
         continue

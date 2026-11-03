@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 ### Added
+- **IP pools** (new opt-in agent module pools, rule option "IP pools",
+  /ip/pool and /ip/pool/used, contributed by Klaus Paulitsch): one service
+  IP Pool per pool with used and free addresses; levels for used
+  addresses in percent (default WARN 80, CRIT 90) and optionally for free
+  addresses, new check rule "MikroTik IP Pools". The agent only transfers
+  the number of used addresses, not the leases. Metrics, Perf-O-Meter and
+  graphs. Works with the RouterOS API and the REST API.
 - **NTP client** (new opt-in agent module ntp, rule option "NTP client",
   RouterOS 7, /system/ntp/client, contributed by Klaus Paulitsch): service
   NTP Time with synchronisation status, synced server, absolute time
@@ -23,6 +30,9 @@
   extensions.
 
 ### Upgrade notes
+- IP pools: the module is off in existing rules and not part of the agent
+  default "all". Enable "IP pools" in the special agent rule and run a
+  service discovery.
 - NTP client: the module is off in existing rules and not part of the
   agent default "all". Enable "NTP client" in the special agent rule and
   run a service discovery.

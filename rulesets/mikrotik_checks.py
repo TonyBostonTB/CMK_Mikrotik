@@ -13,6 +13,7 @@ Each rule_spec_* variable is auto-discovered by CheckMK via entry_point_prefixes
 from cmk.rulesets.v1 import Help, Title
 from cmk.rulesets.v1.form_specs import (
     DefaultValue,
+    Percentage,
     DictElement,
     Dictionary,
     Integer,
@@ -506,6 +507,43 @@ rule_spec_mikrotik_ntp = CheckParameters(
                     level_direction=LevelDirection.UPPER,
                     form_spec_template=Integer(),
                     prefill_fixed_levels=DefaultValue((10, 15)),
+                ),
+            ),
+        },
+    ),
+)
+
+
+# ---------------------------------------------------------------------------
+# IP pools
+# ---------------------------------------------------------------------------
+
+rule_spec_mikrotik_pool = CheckParameters(
+    name="mikrotik_pool",
+    title=Title("MikroTik IP Pools"),
+    topic=Topic.NETWORKING,
+    condition=HostAndItemCondition(item_title=Title("Pool name")),
+    parameter_form=lambda: Dictionary(
+        help_text=Help(
+            "Activate special agent mikrotik with the module 'IP pools' to use this.",
+        ),
+        elements={
+            "used_percent_upper": DictElement(
+                required=False,
+                parameter_form=SimpleLevels(
+                    title=Title("Upper levels for used addresses in percent"),
+                    level_direction=LevelDirection.UPPER,
+                    form_spec_template=Percentage(),
+                    prefill_fixed_levels=DefaultValue((80.0, 90.0)),
+                ),
+            ),
+            "free_lower": DictElement(
+                required=False,
+                parameter_form=SimpleLevels(
+                    title=Title("Lower levels for free addresses"),
+                    level_direction=LevelDirection.LOWER,
+                    form_spec_template=Integer(),
+                    prefill_fixed_levels=DefaultValue((10, 5)),
                 ),
             ),
         },

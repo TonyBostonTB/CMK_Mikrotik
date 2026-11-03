@@ -1,0 +1,29 @@
+title: MikroTik IP Pools
+agents: mikrotik
+catalog: hw/network/mikrotik
+license: GPL
+distribution: check_mk
+description:
+ Usage of the IP pools of a MikroTik RouterOS 7 device ({/ip/pool}) as
+ used by the DHCP server, PPP or hotspot. The agent counts the used
+ addresses from {/ip/pool/used}; the leases themselves are not
+ transferred.
+
+ The pool size is computed from the ranges (from-to, prefix or single
+ address, several separated by commas). Used addresses in percent have
+ upper levels (default {WARN} at 80%, {CRIT} at 90%), free addresses
+ optionally lower levels. A configured next pool is shown. Levels via
+ the rule {MikroTik IP Pools}.
+
+ To connect to the MikroTik device a special datasource program is
+ used: {MikroTik RouterOS} in Setup > Agents > Other integrations,
+ module "IP pools". The module is opt-in, "all" does not include it.
+
+item:
+ The name of the pool.
+
+perfdata:
+ Used addresses in percent, used and free addresses.
+
+inventory:
+ One service per pool.
