@@ -27,7 +27,6 @@ from cmk.agent_based.v2 import (
     CheckPlugin,
     CheckResult,
     DiscoveryResult,
-    Metric,
     Result,
     Service,
     State,
@@ -91,14 +90,16 @@ def check_mikrotik_ntp(params: dict[str, Any], section: Section) -> CheckResult:
 
     offset = offset_seconds(section.get("system-offset"))
     if offset is not None:
+        # absolute offset with levels as metric, like the Checkmk timesyncd
+        # check: the time_offset graph and Perf-O-Meter start at 0 and draw
+        # the WARN/CRIT lines from the metric levels
         yield from check_levels(
             abs(offset),
             levels_upper=params.get("offset_levels"),
+            metric_name="time_offset",
             render_func=render.timespan,
             label="Offset" + (" (negative)" if offset < 0 else ""),
         )
-        # signed offset for the graph, same metric as the chrony/ntp checks
-        yield Metric("time_offset", offset)
 
     stratum = section.get("synced-stratum", "")
     if stratum.isdigit():

@@ -19,7 +19,7 @@ description:
  module "NTP client". The module is opt-in, "all" does not include it.
 
 perfdata:
- Time offset.
+ Absolute time offset with the WARN/CRIT levels.
 
 inventory:
  One service if the NTP client is enabled.
