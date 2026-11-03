@@ -19,6 +19,7 @@ It includes checks for:
   covers all its access points) and HW/SW inventory of the access points
   managed by a CAPsMAN controller (model, serial, version)
 - WireGuard per peer: age of the latest handshake, endpoint and traffic
+- NTP client: synchronisation status, time offset and stratum
 
 ### Requirements
 

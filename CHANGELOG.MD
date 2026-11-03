@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 ### Added
+- **NTP client** (new opt-in agent module ntp, rule option "NTP client",
+  RouterOS 7, /system/ntp/client, contributed by Klaus Paulitsch): service
+  NTP Time with synchronisation status, synced server, absolute time
+  offset (default WARN 200 ms, CRIT 500 ms) and stratum (default WARN 10,
+  CRIT 15); a disabled client is WARN. New check rule "MikroTik NTP
+  Client". Works with the RouterOS API and the REST API.
 - **Metric definitions, graphs and Perf-O-Meters** (new file
   graphing/mikrotik.py, contributed by Klaus Paulitsch):
   - File age and PoE Consumption now use the Checkmk metrics age and
@@ -17,7 +23,10 @@
   extensions.
 
 ### Upgrade notes
-- No rediscovery needed. Graphs of the renamed metrics (file age, PoE,
+- NTP client: the module is off in existing rules and not part of the
+  agent default "all". Enable "NTP client" in the special agent rule and
+  run a service discovery.
+- Metrics: no rediscovery needed. Graphs of the renamed metrics (file age, PoE,
   firewall packets, BGP counters) start anew, the old values stay
   in the old RRD files.
 

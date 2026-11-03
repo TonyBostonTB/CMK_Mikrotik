@@ -455,3 +455,59 @@ rule_spec_mikrotik_wireguard = CheckParameters(
         },
     ),
 )
+
+
+# ---------------------------------------------------------------------------
+# NTP client
+# ---------------------------------------------------------------------------
+
+rule_spec_mikrotik_ntp = CheckParameters(
+    name="mikrotik_ntp",
+    title=Title("MikroTik NTP Client"),
+    topic=Topic.OPERATING_SYSTEM,
+    condition=HostCondition(),
+    parameter_form=lambda: Dictionary(
+        help_text=Help(
+            "Activate special agent mikrotik with the module 'NTP client' to use this.",
+        ),
+        elements={
+            "not_synced_state": DictElement(
+                required=False,
+                parameter_form=ServiceState(
+                    title=Title("State if not synchronized"),
+                    prefill=DefaultValue(ServiceState.WARN),
+                ),
+            ),
+            "disabled_state": DictElement(
+                required=False,
+                parameter_form=ServiceState(
+                    title=Title("State if the NTP client is disabled"),
+                    prefill=DefaultValue(ServiceState.WARN),
+                ),
+            ),
+            "offset_levels": DictElement(
+                required=False,
+                parameter_form=SimpleLevels(
+                    title=Title("Upper levels for the absolute time offset"),
+                    level_direction=LevelDirection.UPPER,
+                    form_spec_template=TimeSpan(
+                        displayed_magnitudes=[
+                            TimeMagnitude.SECOND,
+                            TimeMagnitude.MILLISECOND,
+                        ],
+                    ),
+                    prefill_fixed_levels=DefaultValue((0.2, 0.5)),
+                ),
+            ),
+            "stratum_upper": DictElement(
+                required=False,
+                parameter_form=SimpleLevels(
+                    title=Title("Upper levels for the stratum"),
+                    level_direction=LevelDirection.UPPER,
+                    form_spec_template=Integer(),
+                    prefill_fixed_levels=DefaultValue((10, 15)),
+                ),
+            ),
+        },
+    ),
+)
