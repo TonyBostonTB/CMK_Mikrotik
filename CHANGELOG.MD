@@ -1,5 +1,23 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [Unreleased]
+### Added
+- **UPS** (new opt-in agent module ups, rule option "UPS", RouterOS 6
+  and 7, /system/ups with package ups.npk, contributed by Klaus
+  Paulitsch): one service UPS per UPS with power source (CRIT on
+  battery), battery low (CRIT), replace battery and overload (WARN),
+  battery charge (default WARN 50, CRIT 25 percent), runtime left
+  (default WARN 10, CRIT 5 minutes), load (default WARN 80, CRIT 90
+  percent) and optionally temperature; voltages and frequency as
+  metrics. CRIT if the UPS delivers no monitor data. New check rule
+  "MikroTik UPS". Model, serial and firmware in the HW/SW inventory.
+  Works with the RouterOS API and the REST API.
+
+### Upgrade notes
+- UPS: the module is off in existing rules and not part of the agent
+  default "all". Enable "UPS" in the special agent rule and run a
+  service discovery.
+
 ## [4.4.0] - 2026-11-04
 ### Added
 - **IP pools** (new opt-in agent module pools, rule option "IP pools",

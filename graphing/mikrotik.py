@@ -8,7 +8,8 @@ title, unit, graph template or Perf-O-Meter. This module
   Perf-O-Meters appear,
 - translates generic names to package-prefixed ones (firewall packets,
   BGP counters), so they cannot clash with other extensions, and
-- defines the package metrics (WiFi, WireGuard, firewall, BGP).
+- defines the package metrics (WiFi, WireGuard, firewall, BGP, IP pools,
+  UPS voltages).
 
 Translations only apply to the check plugins of this package.
 
@@ -155,6 +156,40 @@ graph_mikrotik_pool_percent = graphs.Graph(
         metrics.WarningOf("mikrotik_pool_used_percent"),
         metrics.CriticalOf("mikrotik_pool_used_percent"),
     ],
+)
+
+# ---------------------------------------------------------------------------
+# UPS (battery charge, runtime, load, temperature and frequency use the
+# Checkmk metrics battery_capacity, battery_seconds_remaining, output_load,
+# temp and frequency)
+# ---------------------------------------------------------------------------
+
+UNIT_VOLT = metrics.Unit(metrics.DecimalNotation("V"))
+
+metric_mikrotik_ups_input_voltage = metrics.Metric(
+    name="mikrotik_ups_input_voltage",
+    title=Title("UPS input voltage"),
+    unit=UNIT_VOLT,
+    color=metrics.Color.BLUE,
+)
+metric_mikrotik_ups_output_voltage = metrics.Metric(
+    name="mikrotik_ups_output_voltage",
+    title=Title("UPS output voltage"),
+    unit=UNIT_VOLT,
+    color=metrics.Color.GREEN,
+)
+metric_mikrotik_ups_battery_voltage = metrics.Metric(
+    name="mikrotik_ups_battery_voltage",
+    title=Title("UPS battery voltage"),
+    unit=UNIT_VOLT,
+    color=metrics.Color.ORANGE,
+)
+
+graph_mikrotik_ups_voltage = graphs.Graph(
+    name="mikrotik_ups_voltage",
+    title=Title("UPS voltages"),
+    simple_lines=["mikrotik_ups_input_voltage", "mikrotik_ups_output_voltage"],
+    optional=["mikrotik_ups_output_voltage"],
 )
 
 # ---------------------------------------------------------------------------
