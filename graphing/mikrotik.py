@@ -189,7 +189,7 @@ graph_mikrotik_ups_voltage = graphs.Graph(
     name="mikrotik_ups_voltage",
     title=Title("UPS voltages"),
     simple_lines=["mikrotik_ups_input_voltage", "mikrotik_ups_output_voltage"],
-    optional=["mikrotik_ups_output_voltage"],
+    optional=["mikrotik_ups_input_voltage", "mikrotik_ups_output_voltage"],
 )
 
 # ---------------------------------------------------------------------------
