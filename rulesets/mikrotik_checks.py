@@ -15,6 +15,7 @@ from cmk.rulesets.v1.form_specs import (
     DefaultValue,
     DictElement,
     Dictionary,
+    Float,
     Integer,
     LevelDirection,
     List,
@@ -544,6 +545,83 @@ rule_spec_mikrotik_pool = CheckParameters(
                     level_direction=LevelDirection.LOWER,
                     form_spec_template=Integer(),
                     prefill_fixed_levels=DefaultValue((10, 5)),
+                ),
+            ),
+        },
+    ),
+)
+
+
+# ---------------------------------------------------------------------------
+# UPS
+# ---------------------------------------------------------------------------
+
+
+def _ups_state(title: str, default: ServiceState) -> DictElement:
+    return DictElement(
+        required=False,
+        parameter_form=ServiceState(title=Title(title), prefill=DefaultValue(default)),
+    )
+
+
+rule_spec_mikrotik_ups = CheckParameters(
+    name="mikrotik_ups",
+    title=Title("MikroTik UPS"),
+    topic=Topic.ENVIRONMENTAL,
+    condition=HostAndItemCondition(item_title=Title("UPS name")),
+    parameter_form=lambda: Dictionary(
+        help_text=Help(
+            "UPS connected to the MikroTik router (/system/ups, package ups.npk). "
+            "Activate special agent mikrotik with the module 'UPS' to use this.",
+        ),
+        elements={
+            "on_battery_state": _ups_state("State when running on battery", ServiceState.CRIT),
+            "low_battery_state": _ups_state("State when the battery is low", ServiceState.CRIT),
+            "replace_battery_state": _ups_state(
+                "State when the battery needs replacement", ServiceState.WARN
+            ),
+            "overload_state": _ups_state("State when the output is overloaded", ServiceState.WARN),
+            "no_data_state": _ups_state("State when the UPS delivers no data", ServiceState.CRIT),
+            "battery_charge_lower": DictElement(
+                required=False,
+                parameter_form=SimpleLevels(
+                    title=Title("Lower levels for the battery charge"),
+                    level_direction=LevelDirection.LOWER,
+                    form_spec_template=Percentage(),
+                    prefill_fixed_levels=DefaultValue((50.0, 25.0)),
+                ),
+            ),
+            "runtime_lower": DictElement(
+                required=False,
+                parameter_form=SimpleLevels(
+                    title=Title("Lower levels for the remaining runtime"),
+                    level_direction=LevelDirection.LOWER,
+                    form_spec_template=TimeSpan(
+                        displayed_magnitudes=[
+                            TimeMagnitude.HOUR,
+                            TimeMagnitude.MINUTE,
+                            TimeMagnitude.SECOND,
+                        ],
+                    ),
+                    prefill_fixed_levels=DefaultValue((600.0, 300.0)),
+                ),
+            ),
+            "load_upper": DictElement(
+                required=False,
+                parameter_form=SimpleLevels(
+                    title=Title("Upper levels for the output load"),
+                    level_direction=LevelDirection.UPPER,
+                    form_spec_template=Percentage(),
+                    prefill_fixed_levels=DefaultValue((80.0, 90.0)),
+                ),
+            ),
+            "temperature_upper": DictElement(
+                required=False,
+                parameter_form=SimpleLevels(
+                    title=Title("Upper levels for the temperature"),
+                    level_direction=LevelDirection.UPPER,
+                    form_spec_template=Float(unit_symbol="°C"),
+                    prefill_fixed_levels=DefaultValue((40.0, 50.0)),
                 ),
             ),
         },

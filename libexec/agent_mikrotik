@@ -74,12 +74,12 @@ OPTIONS:
   -i MODULES, --modules MODULES Modules to query. This is a comma separated list
                                 which may contain the keywords "bgp", "ospf",
                                 "health", "board", "vrrp", "ipsec", "chains",
-                                "file", "license", "wifi", "wireguard", "ntp"
-                                and "pools".
+                                "file", "license", "wifi", "wireguard", "ntp",
+                                "pools" and "ups".
                                 You can define to use only few of them to optimize
                                 performance. The default is "all", which covers
-                                every module except "wifi", "wireguard", "ntp"
-                                and "pools"
+                                every module except "wifi", "wireguard", "ntp",
+                                "pools" and "ups"
                                 (opt-in, name them explicitly).
 
 """)
@@ -415,6 +415,78 @@ def wireguard_lines(api):
     clean = lambda field: field.replace('|', '/').replace('\n', ' ')
     return ['|'.join(clean(field) for field in line) for line in lines]
 
+# run a command with arguments (e.g. "monitor" with numbers and once) in
+# both API modes. myapi() sends every word as a sentence of its own and
+# the REST API needs a POST with a JSON body for such commands, so this
+# has its own request. Returns a list of dicts, None on error.
+def api_call(path, args):
+    if restful:
+        protocol = 'https' if secure else 'http'
+        url = '%s://%s:%s/rest%s' % (protocol, host, port, path)
+        try:
+            response = requests.post(url, json=args, auth=(user, password),
+                                     verify=certcheck, timeout=15,
+                                     headers={'user-agent': 'CMK Mikrotik Plugin'})
+            data = response.json()
+        except Exception:
+            return None
+        if opt_debug:
+            print('\n# DEBUG_OUTPUT api_call(%s, %s)' % (path, args))
+            pprint.pprint(data)
+        if response.status_code != 200:
+            return None
+        return data if isinstance(data, list) else [data]
+
+    words = [path] + ['=%s=%s' % (key, value) for key, value in args.items()]
+    try:
+        apiros.writeSentence(words)
+        result, trapped = [], False
+        while True:
+            sentence = apiros.readSentence()
+            if not sentence or sentence[0] == '!empty':
+                continue
+            if sentence[0] == '!trap':
+                trapped = True
+            elif sentence[0] == '!re':
+                result.append(list2dict(sentence))
+            if sentence[0] in ('!done', '!fatal'):
+                break
+    except Exception:
+        return None
+    if opt_debug:
+        print('\n# DEBUG_OUTPUT api_call(%s, %s)' % (path, args))
+        pprint.pprint(result)
+    return None if trapped else result
+
+# UPS (/system/ups, package ups.npk), pipe separated:
+#   ups|<name>|<field>|<value>    configuration and identification
+#   mon|<name>|<field>|<value>    "/system/ups/monitor once" of this UPS
+# No mon lines if the monitor call fails or the UPS is disabled; the check
+# then reports that the UPS delivers no data.
+_UPS_FIELDS = ('model', 'serial', 'version', 'manufacture-date',
+               'nominal-battery-voltage', 'port', 'disabled', 'invalid',
+               'offline-time', 'min-runtime')
+
+def ups_lines(api):
+    lines = []
+    for ups in wifi_rows(api, "/system/ups/print") or []:
+        name = ups.get('name') or ups.get('.id')
+        if not name:
+            continue
+        for key in _UPS_FIELDS:
+            if key in ups:
+                lines.append(['ups', name, key, str(ups[key])])
+        if ups.get('disabled', 'false') == 'true' or '.id' not in ups:
+            continue
+        for row in (api_call('/system/ups/monitor',
+                             {'numbers': ups['.id'], 'once': ''}) or [])[:1]:
+            for key, value in row.items():
+                if key not in ('.id', '.section'):
+                    lines.append(['mon', name, key, str(value)])
+
+    clean = lambda field: field.replace('|', '/').replace('\n', ' ')
+    return ['|'.join(clean(field) for field in line) for line in lines]
+
 # IP pools, pipe separated (ranges contain commas):
 #   pool|<name>|<ranges>|<next-pool>|<used>|<total>|<available>
 # Newer RouterOS 7 versions report total, used and available per pool in
@@ -554,7 +626,7 @@ command_set['6'] = {
 }
 
 # modules that "all" does not include - they only run when named in --modules
-OPT_IN_MODULES = ("wifi", "wireguard", "ntp", "pools")
+OPT_IN_MODULES = ("wifi", "wireguard", "ntp", "pools", "ups")
 
 # wifi: one entry per RouterOS wireless driver. Devices only know the menus
 # of the installed driver; the others answer with a trap and are skipped.
@@ -577,6 +649,13 @@ WIFI_SOURCES = [
 # pool_lines
 command_set['6']['pools'] = {
                        "header"   : "mikrotik_pool",
+                       "active"   : False,
+                       "command"  : [],
+                      }
+
+# UPS (package ups.npk), RouterOS 6 and 7; the commands are in ups_lines
+command_set['6']['ups'] = {
+                       "header"   : "mikrotik_ups",
                        "active"   : False,
                        "command"  : [],
                       }
@@ -755,6 +834,15 @@ for module in command_options.keys():
         lines = wireguard_lines(myapi)
         if lines:
             print('<<<mikrotik_wireguard:sep(124)>>>')
+            print('\n'.join(lines))
+            print('<<<>>>')
+        continue
+
+    # UPS: /system/ups and "monitor once" per UPS, see ups_lines
+    if module == "ups":
+        lines = ups_lines(myapi)
+        if lines:
+            print('<<<mikrotik_ups:sep(124)>>>')
             print('\n'.join(lines))
             print('<<<>>>')
         continue
