@@ -75,11 +75,11 @@ OPTIONS:
                                 which may contain the keywords "bgp", "ospf",
                                 "health", "board", "vrrp", "ipsec", "chains",
                                 "file", "license", "wifi", "wireguard", "ntp",
-                                "pools" and "ups".
+                                "pools", "ups" and "interfaces".
                                 You can define to use only few of them to optimize
                                 performance. The default is "all", which covers
                                 every module except "wifi", "wireguard", "ntp",
-                                "pools" and "ups"
+                                "pools", "ups" and "interfaces"
                                 (opt-in, name them explicitly).
 
 """)
@@ -419,13 +419,13 @@ def wireguard_lines(api):
 # both API modes. myapi() sends every word as a sentence of its own and
 # the REST API needs a POST with a JSON body for such commands, so this
 # has its own request. Returns a list of dicts, None on error.
-def api_call(path, args):
+def api_call(path, args, timeout=15):
     if restful:
         protocol = 'https' if secure else 'http'
         url = '%s://%s:%s/rest%s' % (protocol, host, port, path)
         try:
             response = requests.post(url, json=args, auth=(user, password),
-                                     verify=certcheck, timeout=15,
+                                     verify=certcheck, timeout=timeout,
                                      headers={'user-agent': 'CMK Mikrotik Plugin'})
             data = response.json()
         except Exception:
@@ -457,6 +457,79 @@ def api_call(path, args):
         print('\n# DEBUG_OUTPUT api_call(%s, %s)' % (path, args))
         pprint.pprint(result)
     return None if trapped else result
+
+# negotiated rate of an ethernet port ("1Gbps", "2.5Gbps", "100Mbps") in bit/s
+def rate_to_bps(rate):
+    match = re.match(r'([\d.]+)\s*([KMG])bps', rate or '')
+    if not match:
+        return 0
+    factor = {'K': 10**3, 'M': 10**6, 'G': 10**9}[match.group(2)]
+    return int(float(match.group(1)) * factor)
+
+# network interfaces, pipe separated because comments may contain spaces:
+#   <index>|<name>|<type>|<disabled>|<running|not-present>|<dynamic>|<mac>|<speed bit/s>|
+#   <rx-byte>|<tx-byte>|<rx-packet>|<tx-packet>|<rx-error>|<tx-error>|
+#   <rx-drop>|<tx-drop>|<comment>
+# index is the RouterOS internal id (*1A -> 26), the same as ifIndex via
+# SNMP and stable when other interfaces are added or removed. speed is only
+# known for ethernet/SFP ports: the negotiated rate from
+# /interface/ethernet/monitor, not the configured speed. An enabled ethernet
+# port without link whose SFP cage is empty is reported as not-present
+# (ifOperStatus notPresent via SNMP); that monitor call has a short timeout
+# (REST), so it cannot delay the rest.
+def interface_lines(api):
+    ifaces = wifi_rows(api, "/interface/print")
+    if not ifaces:
+        return []
+
+    def ether_ids(running):
+        return [i['.id'] for i in ifaces
+                if i.get('type') == 'ether' and '.id' in i
+                and (i.get('running') == 'true') == running
+                and (running or i.get('disabled') != 'true')]
+
+    speed_of = {}
+    running_ether = ether_ids(True)
+    if running_ether:
+        for row in api_call('/interface/ethernet/monitor',
+                            {'numbers': ','.join(running_ether), 'once': ''}) or []:
+            if row.get('name'):
+                speed_of[row['name']] = rate_to_bps(row.get('rate'))
+
+    not_present = set()
+    idle_ether = ether_ids(False)
+    if idle_ether:
+        for row in api_call('/interface/ethernet/monitor',
+                            {'numbers': ','.join(idle_ether), 'once': ''},
+                            timeout=5) or []:
+            if row.get('name') and row.get('sfp-module-present') == 'false':
+                not_present.add(row['name'])
+
+    lines = []
+    for iface in ifaces:
+        name = iface.get('name')
+        ident = iface.get('.id', '')
+        if not name or not ident.startswith('*'):
+            continue
+        try:
+            index = str(int(ident[1:], 16))
+        except ValueError:
+            continue
+        lines.append([
+            index, name, iface.get('type', ''),
+            iface.get('disabled', 'false'),
+            'not-present' if name in not_present else iface.get('running', 'false'),
+            iface.get('dynamic', 'false'), iface.get('mac-address', ''),
+            str(speed_of.get(name, 0)),
+            iface.get('rx-byte', '0'), iface.get('tx-byte', '0'),
+            iface.get('rx-packet', '0'), iface.get('tx-packet', '0'),
+            iface.get('rx-error', '0'), iface.get('tx-error', '0'),
+            iface.get('rx-drop', '0'), iface.get('tx-drop', '0'),
+            iface.get('comment', ''),
+        ])
+
+    clean = lambda field: str(field).replace('|', '/').replace('\n', ' ')
+    return ['|'.join(clean(field) for field in line) for line in lines]
 
 # UPS (/system/ups, package ups.npk), pipe separated:
 #   ups|<name>|<field>|<value>    configuration and identification
@@ -626,7 +699,7 @@ command_set['6'] = {
 }
 
 # modules that "all" does not include - they only run when named in --modules
-OPT_IN_MODULES = ("wifi", "wireguard", "ntp", "pools", "ups")
+OPT_IN_MODULES = ("wifi", "wireguard", "ntp", "pools", "ups", "interfaces")
 
 # wifi: one entry per RouterOS wireless driver. Devices only know the menus
 # of the installed driver; the others answer with a trap and are skipped.
@@ -649,6 +722,13 @@ WIFI_SOURCES = [
 # pool_lines
 command_set['6']['pools'] = {
                        "header"   : "mikrotik_pool",
+                       "active"   : False,
+                       "command"  : [],
+                      }
+
+# network interfaces, RouterOS 6 and 7; the commands are in interface_lines
+command_set['6']['interfaces'] = {
+                       "header"   : "mikrotik_if",
                        "active"   : False,
                        "command"  : [],
                       }
@@ -834,6 +914,15 @@ for module in command_options.keys():
         lines = wireguard_lines(myapi)
         if lines:
             print('<<<mikrotik_wireguard:sep(124)>>>')
+            print('\n'.join(lines))
+            print('<<<>>>')
+        continue
+
+    # network interfaces: /interface and the ethernet monitor, see interface_lines
+    if module == "interfaces":
+        lines = interface_lines(myapi)
+        if lines:
+            print('<<<mikrotik_if:sep(124)>>>')
             print('\n'.join(lines))
             print('<<<>>>')
         continue
