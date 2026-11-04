@@ -20,7 +20,9 @@ It includes checks for:
   managed by a CAPsMAN controller (model, serial, version)
 - WireGuard per peer: age of the latest handshake, endpoint and traffic
 - NTP client: synchronisation status, time offset and stratum
-- IP pools: used and free addresses per pool (DHCP, PPP, hotspot; RouterOS 6 and 7)
+- IP pools: used and free addresses per pool (DHCP, PPP, hotspot)
+- Metric graphs and Perf-O-Meters for file age, PoE, firewall, BGP, WiFi,
+  WireGuard, NTP and IP pools
 
 ### Requirements
 
@@ -29,20 +31,34 @@ It includes checks for:
 
 ### Installation
 
-Install the `.mkp` file via **Setup → Extension packages** or via the CLI:
+Install the `.mkp` file via **Setup → Maintenance → Extension packages**
+(commercial editions only) or on the command line as the site user:
 
 ```
-mkp install mikrotik-<version>.mkp
+mkp add mikrotik-<version>.mkp
+mkp enable mikrotik <version>
+cmk -R
 ```
+
+`mkp add` only makes the package available, `mkp enable` activates it
+(`mkp install` is deprecated). In a distributed setup the package reaches
+the remote sites with the next activation of changes. See
+[Checkmk extension packages (MKPs)](https://docs.checkmk.com/2.5.0/en/mkps.html#commandline).
 
 After installation, configure the special agent under
-**Setup → Other integrations → MikroTik RouterOS** and assign it to your
-MikroTik hosts.
+**Setup → Agents → Other integrations → MikroTik RouterOS** and assign it
+to your MikroTik hosts.
+
+### Opt-in modules
+
+The agent default "all" covers every module except WiFi, WireGuard, NTP
+client and IP pools. Tick these in the special agent rule, activate the
+changes and run a service discovery on the hosts.
 
 ### Migration from v3.x
 
 Stored rules (special agent configuration and check parameters) are migrated
-automatically when the MKP is installed — no manual reconfiguration is needed.
+automatically when the MKP is installed - no manual reconfiguration is needed.
 
 **Power services only**: the old single `Power Usage` service is incompatible
 with the new per-PSU check introduced in v4.0.0. After installing the MKP,
