@@ -15,6 +15,9 @@ Monitors MikroTik RouterOS devices via the RouterOS API (v2, port 8729/SSL or 87
 - WiFi per SSID: connected clients, signal strength and radio state, for the new wifi driver, the legacy wireless driver (not tested) and CAPsMAN, new and legacy (one controller covers all its access points)
 - HW/SW inventory of the access points managed by a CAPsMAN controller: identity, model, serial number, RouterOS version, base MAC
 - WireGuard per peer: age of the latest handshake, endpoint and traffic
+- NTP client: synchronisation status, synced server, time offset and stratum
+- IP pools: used and free addresses per pool (DHCP, PPP, hotspot)
+- Metric graphs and Perf-O-Meters for file age, PoE, firewall, BGP, WiFi, WireGuard, NTP and IP pools
 
 Requirements: CheckMK 2.4 or later, RouterOS 7.x.
 

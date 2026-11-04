@@ -22,7 +22,7 @@ import tarfile
 import time
 
 PACKAGE_NAME = "mikrotik"
-VERSION = "4.3.3"
+VERSION = "4.4.0"
 OUTPUT = f"{PACKAGE_NAME}-{VERSION}.mkp"
 
 # (source path relative to repo root, archive path inside cmk_addons_plugins.tar)
@@ -76,7 +76,7 @@ ADDON_FILES: list[tuple[str, str]] = [
 
 # CheckMK version this release was built and tested on. Shown on the Exchange
 # as "Built on Checkmk version" - update it with every release.
-CMK_PACKAGED = "2.5.0p17"
+CMK_PACKAGED = "2.5.0p18"
 
 # Version description shown on the Checkmk Exchange. The Exchange shows it as
 # plain text: line breaks collapse, Markdown is not rendered and ` ' " are
@@ -86,7 +86,8 @@ SUMMARY = (
     "MikroTik RouterOS monitoring: BGP, OSPF, VRRP; fan, PSU, temperature and "
     "per-PSU power; RouterOS Info and HW/SW inventory (model, serial number, "
     "RouterOS version, RouterBOOT firmware); CHR license state; IPsec and "
-    "firewall filter rules; WiFi clients, signal and radios per SSID, also via CAPsMAN; WireGuard peer handshake and traffic; file age and crashfile handling. "
+    "firewall filter rules; WiFi clients, signal and radios per SSID, also via CAPsMAN; WireGuard peer handshake and traffic; NTP client synchronisation, offset and stratum; "
+    "IP pool usage (used and free addresses); graphs and Perf-O-Meters; file age and crashfile handling. "
     "Requires CheckMK 2.4.0 or later. Full changelog: CHANGELOG.MD in the "
     "source repository."
 )

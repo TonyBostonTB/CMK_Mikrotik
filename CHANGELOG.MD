@@ -1,6 +1,6 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
-## [Unreleased]
+## [4.4.0] - 2026-11-04
 ### Added
 - **IP pools** (new opt-in agent module pools, rule option "IP pools",
   RouterOS 6 and 7, /ip/pool, contributed by Klaus Paulitsch): one service
