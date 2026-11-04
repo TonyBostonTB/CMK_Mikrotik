@@ -1,6 +1,6 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
-## [Unreleased]
+## [4.5.0] - 2026-11-04
 ### Added
 - **UPS** (new opt-in agent module ups, rule option "UPS", RouterOS 6
   and 7, /system/ups with package ups.npk, contributed by Klaus
