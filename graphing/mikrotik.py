@@ -110,6 +110,54 @@ graph_mikrotik_bgp_updates = graphs.Graph(
 )
 
 # ---------------------------------------------------------------------------
+# IP pools
+# ---------------------------------------------------------------------------
+
+UNIT_PERCENT = metrics.Unit(metrics.DecimalNotation("%"))
+
+metric_mikrotik_pool_used_percent = metrics.Metric(
+    name="mikrotik_pool_used_percent",
+    title=Title("Used addresses (percent)"),
+    unit=UNIT_PERCENT,
+    color=metrics.Color.BLUE,
+)
+metric_mikrotik_pool_used = metrics.Metric(
+    name="mikrotik_pool_used",
+    title=Title("Used addresses"),
+    unit=UNIT_COUNT,
+    color=metrics.Color.ORANGE,
+)
+metric_mikrotik_pool_free = metrics.Metric(
+    name="mikrotik_pool_free",
+    title=Title("Free addresses"),
+    unit=UNIT_COUNT,
+    color=metrics.Color.GREEN,
+)
+
+perfometer_mikrotik_pool = perfometers.Perfometer(
+    name="mikrotik_pool",
+    focus_range=perfometers.FocusRange(perfometers.Closed(0), perfometers.Closed(100)),
+    segments=["mikrotik_pool_used_percent"],
+)
+
+graph_mikrotik_pool = graphs.Graph(
+    name="mikrotik_pool",
+    title=Title("IP pool addresses"),
+    compound_lines=["mikrotik_pool_used", "mikrotik_pool_free"],
+)
+
+graph_mikrotik_pool_percent = graphs.Graph(
+    name="mikrotik_pool_percent",
+    title=Title("IP pool usage"),
+    minimal_range=graphs.MinimalRange(0, 100),
+    simple_lines=[
+        "mikrotik_pool_used_percent",
+        metrics.WarningOf("mikrotik_pool_used_percent"),
+        metrics.CriticalOf("mikrotik_pool_used_percent"),
+    ],
+)
+
+# ---------------------------------------------------------------------------
 # WiFi
 # ---------------------------------------------------------------------------
 

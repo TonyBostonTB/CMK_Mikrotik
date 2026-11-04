@@ -20,6 +20,7 @@ It includes checks for:
   managed by a CAPsMAN controller (model, serial, version)
 - WireGuard per peer: age of the latest handshake, endpoint and traffic
 - NTP client: synchronisation status, time offset and stratum
+- IP pools: used and free addresses per pool (DHCP, PPP, hotspot; RouterOS 6 and 7)
 
 ### Requirements
 
