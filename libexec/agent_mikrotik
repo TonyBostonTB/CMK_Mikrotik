@@ -416,24 +416,40 @@ def wireguard_lines(api):
     return ['|'.join(clean(field) for field in line) for line in lines]
 
 # IP pools, pipe separated (ranges contain commas):
-#   pool|<name>|<ranges>|<next-pool>|<used addresses>
-# The used addresses are counted here from /ip/pool/used, the leases
-# themselves are not passed on.
+#   pool|<name>|<ranges>|<next-pool>|<used>|<total>|<available>
+# Newer RouterOS 7 versions report total, used and available per pool in
+# /ip/pool/print; then one request is enough. Otherwise the used addresses
+# are counted from /ip/pool/used (one row per lease, the leases themselves
+# are not passed on) and total/available stay empty: the check computes the
+# size from the ranges. If counting fails, used stays empty as well and the
+# check goes UNKNOWN instead of reporting 0 %.
+def _count(value):
+    value = str(value if value is not None else '').strip()
+    return value if value.isdigit() else ''
+
 def pool_lines(api):
     pools = wifi_rows(api, "/ip/pool/print")
     if not pools:
         return []
-    used = {}
-    for row in wifi_rows(api, "/ip/pool/used/print") or []:
-        name = row.get('pool', '')
-        used[name] = used.get(name, 0) + 1
+    used = None
+    if any(_count(pool.get('used')) == '' for pool in pools if pool.get('name')):
+        rows = wifi_rows(api, "/ip/pool/used/print")
+        if rows is not None:
+            used = {}
+            for row in rows:
+                name = row.get('pool', '')
+                used[name] = used.get(name, 0) + 1
     lines = []
     for pool in pools:
         name = pool.get('name')
         if not name:
             continue
+        count = _count(pool.get('used'))
+        if count == '' and used is not None:
+            count = str(used.get(name, 0))
         lines.append(['pool', name, pool.get('ranges', ''),
-                      pool.get('next-pool', ''), str(used.get(name, 0))])
+                      pool.get('next-pool', ''), count,
+                      _count(pool.get('total')), _count(pool.get('available'))])
 
     clean = lambda field: field.replace('|', '/').replace('\n', ' ')
     return ['|'.join(clean(field) for field in line) for line in lines]
@@ -557,6 +573,14 @@ WIFI_SOURCES = [
                  "/caps-man/configuration/print", "/caps-man/remote-cap/print"),
 ]
 
+# IP pools (DHCP, PPP, hotspot), RouterOS 6 and 7; the commands are in
+# pool_lines
+command_set['6']['pools'] = {
+                       "header"   : "mikrotik_pool",
+                       "active"   : False,
+                       "command"  : [],
+                      }
+
 # firmware 7 slightly different from 6
 command_set['7'] = command_set['6'].copy()
 command_set['7']['bgp']= {
@@ -570,13 +594,6 @@ command_set['7']['bgp']= {
 # WireGuard exists since RouterOS 7, the command is in wireguard_lines
 command_set['7']['wireguard'] = {
                        "header"   : "mikrotik_wireguard",
-                       "active"   : False,
-                       "command"  : [],
-                      }
-
-# IP pools (DHCP, PPP, hotspot); the commands are in pool_lines
-command_set['7']['pools'] = {
-                       "header"   : "mikrotik_pool",
                        "active"   : False,
                        "command"  : [],
                       }

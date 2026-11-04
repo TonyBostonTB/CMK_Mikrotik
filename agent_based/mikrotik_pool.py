@@ -1,12 +1,17 @@
 """CheckMK agent-based check plugin for MikroTik IP pools.
 
-Agent module "pools" (/ip/pool and the number of /ip/pool/used entries),
-pipe separated because the ranges contain commas:
-    pool|<name>|<ranges>|<next-pool>|<used addresses>
+Agent module "pools" (/ip/pool, RouterOS 6 and 7), pipe separated because
+the ranges contain commas:
+    pool|<name>|<ranges>|<next-pool>|<used>|<total>|<available>
 
-One service per pool ("IP Pool <name>") with used and free addresses. The
-pool size is computed from the ranges: from-to, prefix or single address,
-several separated by commas.
+Newer RouterOS 7 versions report used, total and available per pool; the
+check uses these numbers. Otherwise the agent counts the used addresses from
+/ip/pool/used, total and available are empty and the pool size is computed
+from the ranges: from-to, prefix or single address, several separated by
+commas. An empty used field means the count failed: the service goes
+UNKNOWN. Older agents sent only the first five fields.
+
+One service per pool ("IP Pool <name>") with used and free addresses.
 
 Contributed by Klaus Paulitsch <kp@workitout.at>.
 
@@ -36,7 +41,16 @@ from cmk.agent_based.v2 import (
 class Pool:
     ranges: str
     next_pool: str
-    used: int
+    used: int | None
+    total: int | None = None
+    available: int | None = None
+
+
+def _int(value: str) -> int | None:
+    try:
+        return int(value)
+    except ValueError:
+        return None
 
 
 Section = dict[str, Pool]
@@ -46,13 +60,16 @@ def parse_mikrotik_pool(string_table: StringTable) -> Section | None:
     """Parse pool lines; None if the module delivered nothing."""
     section: Section = {}
     for line in string_table:
-        if len(line) < 5 or line[0] != "pool" or not line[1]:  # noqa: PLR2004
+        if len(line) < 5 or line[0] != "pool" or not line[1]:
             continue
-        try:
-            used = int(line[4])
-        except ValueError:
-            used = 0
-        section[line[1]] = Pool(ranges=line[2], next_pool=line[3], used=used)
+        fields = [*line, "", ""]
+        section[line[1]] = Pool(
+            ranges=line[2],
+            next_pool=line[3],
+            used=_int(fields[4]),
+            total=_int(fields[5]),
+            available=_int(fields[6]),
+        )
     return section or None
 
 
@@ -68,6 +85,8 @@ def pool_size(ranges: str) -> int | None:
         try:
             if "-" in part:
                 first, last = (ipaddress.ip_address(x.strip()) for x in part.split("-", 1))
+                if int(last) < int(first):
+                    return None
                 total += int(last) - int(first) + 1
             elif "/" in part:
                 total += ipaddress.ip_network(part, strict=False).num_addresses
@@ -89,11 +108,14 @@ def check_mikrotik_pool(item: str, params: dict[str, Any], section: Section) -> 
     """Check used and free addresses of an IP pool."""
     if (pool := section.get(item)) is None:
         return
-    size = pool_size(pool.ranges)
+    if pool.used is None:
+        yield Result(state=State.UNKNOWN, summary="Number of used addresses not available")
+        return
+    size = pool.total or pool_size(pool.ranges)
     if not size:
         yield Result(state=State.UNKNOWN, summary=f"Cannot parse ranges {pool.ranges!r}")
         return
-    free = max(size - pool.used, 0)
+    free = pool.available if pool.available is not None else max(size - pool.used, 0)
 
     yield from check_levels(
         100.0 * pool.used / size,

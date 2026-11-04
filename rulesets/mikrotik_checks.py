@@ -13,12 +13,12 @@ Each rule_spec_* variable is auto-discovered by CheckMK via entry_point_prefixes
 from cmk.rulesets.v1 import Help, Title
 from cmk.rulesets.v1.form_specs import (
     DefaultValue,
-    Percentage,
     DictElement,
     Dictionary,
     Integer,
     LevelDirection,
     List,
+    Percentage,
     ServiceState,
     SimpleLevels,
     String,
