@@ -1,0 +1,60 @@
+title: MikroTik Network Interfaces
+agents: mikrotik
+catalog: hw/network/mikrotik
+license: GPL
+distribution: check_mk
+description:
+ Traffic, packets, errors, discards, operational state and speed of the
+ network interfaces of a MikroTik RouterOS 6 or 7 device ({/interface}).
+
+ The data is handed to the standard Checkmk interface check, so all its
+ rules apply: {Network interface and switch port discovery} for the
+ discovery and {Network interfaces and switch ports} for the levels
+ (bandwidth, error and discard rates, expected speed and state, averaging,
+ interface groups).
+
+ The RouterOS interface type is mapped to the IANA ifType (ether 6,
+ vlan 135, bridge 209, bond 161, wlan/wifi 71, PPP 23, tunnels 131,
+ vrrp 112, WireGuard, loopback and others 1). ether, vlan, bridge,
+ WireGuard and loopback match the ifType RouterOS reports via SNMP. With
+ the default discovery rule only ethernet ports that are up are
+ discovered, the same as for SNMP. Add port types to the discovery rule to
+ monitor VLANs, bridges, bondings, PPP or tunnel interfaces.
+
+ The speed is the negotiated rate of ethernet and SFP ports
+ ({/interface/ethernet/monitor}); other interface types report no speed.
+ Disabled interfaces are reported as admin down.
+
+ RouterOS reports packets per interface only in total, so the unicast
+ packet counters include multicast and broadcast packets, and the
+ multicast and broadcast counters stay empty. An SFP cage without
+ module is reported as "not present" (sfp-module-present of
+ {/interface/ethernet/monitor}), the same as ifOperStatus via SNMP.
+
+ Index, description and alias are the same as via SNMP: the index is the
+ RouterOS internal id (ifIndex), which does not change when other
+ interfaces are added or removed, the description is the interface name
+ (ifDescr), the alias is the interface comment and empty without one
+ (ifAlias). Switching a host from SNMP to this module keeps the items.
+
+ If the host is also monitored via SNMP, the module replaces the SNMP
+ interface sections (if64, if, if64adm, if_name and the sections they
+ replace themselves), so every interface appears only once. This only
+ applies when the module delivered data.
+
+ To connect to the MikroTik device a special datasource program is
+ used: {MikroTik RouterOS} in Setup > Agents > Other integrations,
+ module "Network interfaces". The module is opt-in, "all" does not
+ include it.
+
+item:
+ Depending on the discovery rule the index (default), the name
+ (description) or the comment (alias) of the interface.
+
+perfdata:
+ Same as the standard interface check: in/out bandwidth, packets,
+ errors and discards.
+
+inventory:
+ One service per interface that matches the discovery rule. The
+ interfaces also appear in the HW/SW inventory.
