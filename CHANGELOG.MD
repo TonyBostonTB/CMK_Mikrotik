@@ -8,8 +8,8 @@
   service Interface per interface through the standard Checkmk interface
   check, so the rules "Network interface and switch port discovery" and
   "Network interfaces and switch ports" apply. Index, description, alias
-  and port type are the same as via SNMP (ifIndex = RouterOS id, ifDescr
-  = name, ifAlias = comment), so the items stay the same when a host is
+  and port type are the same as via SNMP (ifIndex is the RouterOS id,
+  ifDescr the name, ifAlias the comment), so the items stay the same when a host is
   switched from SNMP. Negotiated speed of ethernet and SFP ports, admin
   down for disabled interfaces, not present for an SFP cage without
   module. Interface graphs, bandwidth Perf-O-Meter and HW/SW inventory.

@@ -22,6 +22,16 @@ SNMP to this module keeps the items. A host that is polled via SNMP as
 well gets the interfaces only once: the section supersedes the SNMP
 interface sections, but only if the module delivered data.
 
+Counters: /interface reports packets only in total, without a split into
+unicast, multicast and broadcast. All packets are passed as unicast, so the
+unicast graphs include multicast and broadcast; the multicast and broadcast
+counters stay empty.
+
+Note: the interface check and inventory come from cmk.plugins.lib
+(interfaces, inventory_interfaces), Checkmk's own shared code and not one
+of the versioned plug-in APIs. Reusing it keeps all the standard interface
+rules, but it has to be rechecked with every Checkmk major release.
+
 Contributed by Klaus Paulitsch <kp@workitout.at>.
 
 SPDX-License-Identifier: GPL-3.0-only

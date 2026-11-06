@@ -420,6 +420,9 @@ def wireguard_lines(api):
 # the REST API needs a POST with a JSON body for such commands, so this
 # has its own request. Returns a list of dicts, None on error.
 def api_call(path, args, timeout=15):
+    # timeout: seconds, REST API only. The RouterOS API connection has no
+    # per-command timeout; a cut-off answer would leave the connection out
+    # of step for the following commands.
     if restful:
         protocol = 'https' if secure else 'http'
         url = '%s://%s:%s/rest%s' % (protocol, host, port, path)
@@ -475,8 +478,10 @@ def rate_to_bps(rate):
 # known for ethernet/SFP ports: the negotiated rate from
 # /interface/ethernet/monitor, not the configured speed. An enabled ethernet
 # port without link whose SFP cage is empty is reported as not-present
-# (ifOperStatus notPresent via SNMP); that monitor call has a short timeout
-# (REST), so it cannot delay the rest.
+# (ifOperStatus notPresent via SNMP). With the REST API that monitor call
+# has a short timeout, so it cannot delay the rest; with the RouterOS API
+# the timeout does not apply (api_call ignores it there, the call returns
+# at once because of "once").
 def interface_lines(api):
     ifaces = wifi_rows(api, "/interface/print")
     if not ifaces:
