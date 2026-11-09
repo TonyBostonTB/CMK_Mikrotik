@@ -25,7 +25,8 @@ interface sections, but only if the module delivered data.
 Counters: /interface reports packets only in total, without a split into
 unicast, multicast and broadcast. All packets are passed as unicast, so the
 unicast graphs include multicast and broadcast; the multicast and broadcast
-counters stay empty.
+counters stay empty (non-unicast is passed as 0, which the error and
+discard rates need).
 
 Note: the interface check and inventory come from cmk.plugins.lib
 (interfaces, inventory_interfaces), Checkmk's own shared code and not one
@@ -137,11 +138,17 @@ def parse_mikrotik_if(string_table: StringTable) -> Section | None:
                 ),
                 interfaces.Counters(
                     in_octets=_int(rx_byte),
+                    # /interface only counts all packets: pass them as unicast and
+                    # non-unicast as 0, so the total stays right. Without
+                    # in_nucast/out_nucast Checkmk skips the error and discard
+                    # rates (percent of all packets) without a message.
                     in_ucast=_int(rx_packet),
+                    in_nucast=0,
                     in_err=_int(rx_error),
                     in_disc=_int(rx_drop),
                     out_octets=_int(tx_byte),
                     out_ucast=_int(tx_packet),
+                    out_nucast=0,
                     out_err=_int(tx_error),
                     out_disc=_int(tx_drop),
                 ),
