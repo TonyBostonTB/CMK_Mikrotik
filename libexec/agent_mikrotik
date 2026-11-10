@@ -467,12 +467,17 @@ def api_call(path, args, timeout=15):
 #   mikrotik_system_uptime  uptime (-> Checkmk uptime)
 # Separate sections because memory and uptime feed Checkmk's own parsed
 # sections and checks. Key value lines, like the board section.
+# cpu-load is a short-term value: the answer of the first request of the
+# run is used, taken before the agent's own requests (HTTPS on small CPUs)
+# load the device; queried at the time of the module it showed up to 20 %
+# instead of 1-4 % on a hEX S.
 _SYSTEM_KEYS = ('cpu-load', 'cpu-count', 'cpu', 'cpu-frequency',
                 'free-hdd-space', 'total-hdd-space', 'bad-blocks',
                 'write-sect-since-reboot', 'write-sect-total')
 
-def system_sections(api):
-    rows = wifi_rows(api, "/system/resource/print") or []
+def system_sections(api, rows=None):
+    if not rows:
+        rows = wifi_rows(api, "/system/resource/print") or []
     if not rows:
         return []
     res = rows[0]
@@ -887,7 +892,10 @@ print ("<<<check_mk>>>")
 print ("Version: 4.6.0-mikrotik_agent")
 
 # detect firmware version and set commands
-version=myapi(["/system/resource/print"])[0]['version'].split('.')[0]
+# the first request of the run: also used by the system module, so its
+# cpu-load is measured before the agent's own requests load the CPU
+first_resource = myapi(["/system/resource/print"])
+version=first_resource[0]['version'].split('.')[0]
 try:
     command_options = command_set[version]
 except:
@@ -959,7 +967,7 @@ for module in command_options.keys():
 
     # system resources: /system/resource as three sections, see system_sections
     if module == "system":
-        lines = system_sections(myapi)
+        lines = system_sections(myapi, first_resource)
         if lines:
             print('\n'.join(lines))
         continue
