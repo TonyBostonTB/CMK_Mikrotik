@@ -1,0 +1,25 @@
+title: MikroTik NAND bad blocks
+agents: mikrotik
+catalog: hw/network/mikrotik
+license: GPL
+distribution: check_mk
+description:
+ Share of bad blocks of the NAND flash of a MikroTik device ({bad-blocks}
+ of {/system/resource}, reported in percent).
+
+ A small share of bad blocks is normal for NAND flash, often already from
+ the factory, and is handled by the flash management. The service is
+ {WARN} at 2% and {CRIT} at 5% by default, configurable with the rule
+ {MikroTik NAND bad blocks}. Written sectors since reboot and in total are
+ shown in the details as an indicator for flash wear.
+
+ To connect to the MikroTik device a special datasource program is
+ used: {MikroTik RouterOS} in Setup > Agents > Other integrations,
+ module "System resources". The module is opt-in, "all" does not
+ include it.
+
+perfdata:
+ Bad blocks in percent.
+
+inventory:
+ One service if the device reports bad blocks (devices with NAND flash).

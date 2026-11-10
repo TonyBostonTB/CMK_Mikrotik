@@ -21,12 +21,14 @@ It includes checks for:
 - WireGuard per peer: age of the latest handshake, endpoint and traffic
 - NTP client: synchronisation status, time offset and stratum
 - IP pools: used and free addresses per pool (DHCP, PPP, hotspot)
+- System resources: CPU utilization, memory, system disk, uptime and NAND
+  bad blocks, same services as via SNMP
 - Network interfaces: traffic, errors, state and speed through the standard
   Checkmk interface check, items the same as via SNMP
 - UPS (package ups.npk): power source, battery charge, runtime left, load,
   voltages; model and serial in the HW/SW inventory
 - Metric graphs and Perf-O-Meters for file age, PoE, firewall, BGP, WiFi,
-  WireGuard, NTP, IP pools, UPS and network interfaces
+  WireGuard, NTP, IP pools, UPS, network interfaces and system resources
 
 ### Requirements
 
@@ -56,7 +58,7 @@ to your MikroTik hosts.
 ### Opt-in modules
 
 The agent default "all" covers every module except WiFi, WireGuard, NTP
-client, IP pools, UPS and network interfaces. Tick these in the special agent rule, activate the
+client, IP pools, UPS, network interfaces and system resources. Tick these in the special agent rule, activate the
 changes and run a service discovery on the hosts.
 
 ### Migration from v3.x

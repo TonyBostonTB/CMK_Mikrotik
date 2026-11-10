@@ -627,3 +627,34 @@ rule_spec_mikrotik_ups = CheckParameters(
         },
     ),
 )
+
+
+# ---------------------------------------------------------------------------
+# NAND bad blocks
+# ---------------------------------------------------------------------------
+
+
+rule_spec_mikrotik_bad_blocks = CheckParameters(
+    name="mikrotik_bad_blocks",
+    title=Title("MikroTik NAND bad blocks"),
+    topic=Topic.OPERATING_SYSTEM,
+    condition=HostCondition(),
+    parameter_form=lambda: Dictionary(
+        help_text=Help(
+            "Share of bad blocks of the NAND flash (bad-blocks of /system/resource). "
+            "A small share is normal for NAND flash. Activate special agent mikrotik "
+            "with the module 'System resources' to use this.",
+        ),
+        elements={
+            "levels": DictElement(
+                required=False,
+                parameter_form=SimpleLevels(
+                    title=Title("Upper levels for bad blocks"),
+                    level_direction=LevelDirection.UPPER,
+                    form_spec_template=Percentage(),
+                    prefill_fixed_levels=DefaultValue((2.0, 5.0)),
+                ),
+            ),
+        },
+    ),
+)

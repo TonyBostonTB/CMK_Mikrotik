@@ -1,0 +1,26 @@
+title: MikroTik CPU utilization
+agents: mikrotik
+catalog: hw/network/mikrotik
+license: GPL
+distribution: check_mk
+description:
+ CPU utilization of a MikroTik RouterOS 6 or 7 device ({cpu-load} of
+ {/system/resource}), with CPU model, cores and frequency in the details.
+ Levels and averaging via the rule {CPU utilization for simple devices},
+ default {WARN} at 80%, {CRIT} at 90%, the same as via SNMP.
+
+ On a host that is also polled via SNMP the agent section supersedes the
+ SNMP section (hr_cpu), so the service exists once. This only applies
+ when the module delivered data.
+
+ To connect to the MikroTik device a special datasource program is
+ used: {MikroTik RouterOS} in Setup > Agents > Other integrations,
+ module "System resources". The module is opt-in, "all" does not
+ include it. The same module provides memory (Checkmk check {mem_used})
+ and uptime (Checkmk check {uptime}).
+
+perfdata:
+ Utilization in percent.
+
+inventory:
+ One service.

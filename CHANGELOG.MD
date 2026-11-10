@@ -1,5 +1,27 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [Unreleased]
+### Added
+- **System resources** (new opt-in agent module system, rule option
+  "System resources", RouterOS 6 and 7, one /system/resource request,
+  contributed by Klaus Paulitsch): CPU utilization (rule "CPU
+  utilization for simple devices", default WARN 80, CRIT 90 percent),
+  memory through the Checkmk memory check (rule "Memory levels"),
+  Filesystem system disk through the standard filesystem check (rule
+  "File systems") and uptime through the Checkmk uptime check. Same
+  service names and items as via SNMP. New service NAND bad blocks
+  (default WARN 2, CRIT 5 percent, new check rule "MikroTik NAND bad
+  blocks") with metric and Perf-O-Meter. Works with the RouterOS API and
+  the REST API.
+
+### Upgrade notes
+- System resources: the module is off in existing rules and not part of
+  the agent default "all". Enable "System resources" in the special
+  agent rule and run a service discovery. If the host is also polled via
+  SNMP, the module replaces the SNMP services for CPU, memory, system
+  disk and uptime (same service names, so the history stays), but only
+  while it delivers data.
+
 ## [4.6.0] - 2026-11-10
 ### Added
 - **Network interfaces** (new opt-in agent module interfaces, rule option
