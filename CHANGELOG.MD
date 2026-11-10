@@ -1,5 +1,27 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [Unreleased]
+### Added
+- **Network interfaces** (new opt-in agent module interfaces, rule option
+  "Network interfaces", RouterOS 6 and 7, /interface and
+  /interface/ethernet/monitor, contributed by Klaus Paulitsch): one
+  service Interface per interface through the standard Checkmk interface
+  check, so the rules "Network interface and switch port discovery" and
+  "Network interfaces and switch ports" apply. Index, description, alias
+  and port type are the same as via SNMP (ifIndex is the RouterOS id,
+  ifDescr the name, ifAlias the comment), so the items stay the same when a host is
+  switched from SNMP. Negotiated speed of ethernet and SFP ports, admin
+  down for disabled interfaces, not present for an SFP cage without
+  module. Interface graphs, bandwidth Perf-O-Meter and HW/SW inventory.
+  Works with the RouterOS API and the REST API.
+
+### Upgrade notes
+- Network interfaces: the module is off in existing rules and not part
+  of the agent default "all". Enable "Network interfaces" in the special
+  agent rule and run a service discovery. If the host is also polled via
+  SNMP, the module replaces the SNMP interface services (same items, so
+  the history stays), but only while it delivers data.
+
 ## [4.5.0] - 2026-11-04
 ### Added
 - **UPS** (new opt-in agent module ups, rule option "UPS", RouterOS 6

@@ -4,7 +4,8 @@ Several checks report metrics that Checkmk does not know, so they had no
 title, unit, graph template or Perf-O-Meter. This module
 
 - translates metrics to existing Checkmk metrics where one fits
-  (file_age -> age, poe_consumption -> power), so the standard graphs and
+  (file_age -> age, poe_consumption -> power, interface counters -> if_*),
+  so the standard graphs and
   Perf-O-Meters appear,
 - translates generic names to package-prefixed ones (firewall packets,
   BGP counters), so they cannot clash with other extensions, and
@@ -33,6 +34,30 @@ translation_mikrotik_file = translations.Translation(
     name="mikrotik_file",
     check_commands=[translations.PassiveCheck("mikrotik_file")],
     translations={"file_age": translations.RenameTo("age")},
+)
+
+# Interfaces: the same translation Checkmk uses for if64 / lnx_if, so the
+# usual interface graphs and the bandwidth Perf-O-Meter appear
+translation_mikrotik_if = translations.Translation(
+    name="mikrotik_if",
+    check_commands=[translations.PassiveCheck("mikrotik_if")],
+    translations={
+        "in": translations.RenameToAndScaleBy("if_in_bps", 8),
+        "inbcast": translations.RenameTo("if_in_bcast"),
+        "indisc": translations.RenameTo("if_in_discards"),
+        "inerr": translations.RenameTo("if_in_errors"),
+        "inmcast": translations.RenameTo("if_in_mcast"),
+        "innucast": translations.RenameTo("if_in_non_unicast"),
+        "inucast": translations.RenameTo("if_in_unicast"),
+        "out": translations.RenameToAndScaleBy("if_out_bps", 8),
+        "outbcast": translations.RenameTo("if_out_bcast"),
+        "outdisc": translations.RenameTo("if_out_discards"),
+        "outerr": translations.RenameTo("if_out_errors"),
+        "outmcast": translations.RenameTo("if_out_mcast"),
+        "outnucast": translations.RenameTo("if_out_non_unicast"),
+        "outucast": translations.RenameTo("if_out_unicast"),
+        "total": translations.RenameToAndScaleBy("if_total_bps", 8),
+    },
 )
 
 translation_mikrotik_poe = translations.Translation(
