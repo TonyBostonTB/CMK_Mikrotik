@@ -9,9 +9,14 @@ description:
  Levels and averaging via the rule {CPU utilization for simple devices},
  default {WARN} at 80%, {CRIT} at 90%, the same as via SNMP.
 
- On a host that is also polled via SNMP the agent section supersedes the
- SNMP section (hr_cpu), so the service exists once. This only applies
- when the module delivered data.
+ The service is only discovered on hosts without SNMP CPU data (Checkmk
+ section hr_cpu). {cpu-load} is a short-term value: on a host polled via
+ SNMP it is measured while Checkmk runs the SNMP query at the same time and
+ shows that load (about 20% instead of 2% on a hEX), while the SNMP value
+ (hrProcessorLoad) is a one-minute average. So a host with SNMP keeps the
+ SNMP service {CPU utilization} with the same name and rule. When SNMP is
+ removed from a host, the service changes to this check (shown once as
+ vanished and new in the service discovery, the history continues).
 
  To connect to the MikroTik device a special datasource program is
  used: {MikroTik RouterOS} in Setup > Agents > Other integrations,

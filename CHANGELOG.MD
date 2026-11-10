@@ -4,7 +4,8 @@
 ### Added
 - **System resources** (new opt-in agent module system, rule option
   "System resources", RouterOS 6 and 7, one /system/resource request,
-  contributed by Klaus Paulitsch): CPU utilization (rule "CPU
+  contributed by Klaus Paulitsch): CPU utilization on hosts without
+  SNMP (rule "CPU
   utilization for simple devices", default WARN 80, CRIT 90 percent),
   memory through the Checkmk memory check (rule "Memory levels"),
   Filesystem system disk through the standard filesystem check (rule
@@ -18,9 +19,11 @@
 - System resources: the module is off in existing rules and not part of
   the agent default "all". Enable "System resources" in the special
   agent rule and run a service discovery. If the host is also polled via
-  SNMP, the module replaces the SNMP services for CPU, memory, system
-  disk and uptime (same service names, so the history stays), but only
-  while it delivers data.
+  SNMP, the module replaces the SNMP services for memory, system disk
+  and uptime (same service names, so the history stays), but only while
+  it delivers data. CPU utilization stays with SNMP on such hosts, because
+  the short-term cpu-load of RouterOS is measured during the SNMP query;
+  the module's CPU service is only discovered on hosts without SNMP.
 
 ## [4.6.0] - 2026-11-10
 ### Added

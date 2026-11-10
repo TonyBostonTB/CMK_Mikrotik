@@ -20,10 +20,17 @@ host:
 
 Memory and uptime use the parsed sections of Checkmk's own checks
 (mem_used, uptime), so service names, rules and output are the same as via
-SNMP. All three sections supersede the matching SNMP sections (hr_cpu,
-hr_fs, hr_mem, snmp_uptime), so a host that is polled via SNMP as well gets
-every service once; the parse functions return None without data, so SNMP
-stays in charge then.
+SNMP. The sections supersede the matching SNMP sections (hr_fs, hr_mem,
+snmp_uptime), so a host that is polled via SNMP as well gets every service
+once; the parse functions return None without data, so SNMP stays in
+charge then.
+
+CPU is the exception: the module's CPU service is only discovered if the
+host has no SNMP CPU data (section hr_cpu). cpu-load of /system/resource is
+a short-term value and, on a host polled via SNMP, lands in the load of the
+SNMP query that Checkmk runs at the same time (about 20 % instead of 2 % on
+a hEX), while hrProcessorLoad is a one-minute average (RFC 2790). So hosts
+with SNMP keep the SNMP CPU service, hosts without SNMP get the module's.
 
 Note: cpu_util, df and uptime come from cmk.plugins.lib, Checkmk's own
 shared code and not one of the versioned plug-in APIs. They have to be
@@ -64,12 +71,12 @@ def parse_mikrotik_system(string_table: StringTable) -> Section | None:
     return section or None
 
 
-# CPU and system disk (and NAND bad blocks); supersedes the SNMP CPU and
-# filesystem sections of the host resources MIB
+# CPU and system disk (and NAND bad blocks); supersedes the SNMP filesystem
+# section of the host resources MIB. Not hr_cpu: see the CPU check.
 agent_section_mikrotik_system = AgentSection(
     name="mikrotik_system",
     parse_function=parse_mikrotik_system,
-    supersedes=["hr_cpu", "hr_fs"],
+    supersedes=["hr_fs"],
 )
 
 SYSTEM_DISK = "system disk"
@@ -94,12 +101,25 @@ def _number(section: Section, key: str) -> float | None:
 # ---------------------------------------------------------------------------
 
 
-def discover_mikrotik_cpu(section: Section) -> DiscoveryResult:
-    if _number(section, "cpu-load") is not None:
+def discover_mikrotik_cpu(
+    section_mikrotik_system: Section | None,
+    section_hr_cpu: object | None,
+) -> DiscoveryResult:
+    """Only on hosts without SNMP CPU data, see the module docstring."""
+    if section_hr_cpu is not None or section_mikrotik_system is None:
+        return
+    if _number(section_mikrotik_system, "cpu-load") is not None:
         yield Service()
 
 
-def check_mikrotik_cpu(params: Mapping[str, Any], section: Section) -> CheckResult:
+def check_mikrotik_cpu(
+    params: Mapping[str, Any],
+    section_mikrotik_system: Section | None,
+    section_hr_cpu: object | None,
+) -> CheckResult:
+    """CPU utilization from cpu-load; hr_cpu is only used for the discovery."""
+    if (section := section_mikrotik_system) is None:
+        return
     if (util := _number(section, "cpu-load")) is None:
         return
     yield from check_cpu_util(
@@ -120,7 +140,8 @@ def check_mikrotik_cpu(params: Mapping[str, Any], section: Section) -> CheckResu
 
 check_plugin_mikrotik_cpu = CheckPlugin(
     name="mikrotik_cpu",
-    sections=["mikrotik_system"],
+    # hr_cpu only to leave the CPU to SNMP when the host has it
+    sections=["mikrotik_system", "hr_cpu"],
     service_name="CPU utilization",
     discovery_function=discover_mikrotik_cpu,
     check_function=check_mikrotik_cpu,
