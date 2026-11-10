@@ -23,13 +23,13 @@ description:
 
  The speed is the negotiated rate of ethernet and SFP ports
  ({/interface/ethernet/monitor}); other interface types report no speed.
- Disabled interfaces are reported as admin down.
+ Disabled interfaces are reported as admin down. An SFP cage without
+ module is reported as "not present" (sfp-module-present of
+ {/interface/ethernet/monitor}), the same as ifOperStatus via SNMP.
 
  RouterOS reports packets per interface only in total, so the unicast
  packet counters include multicast and broadcast packets, and the
- multicast and broadcast counters stay empty. An SFP cage without
- module is reported as "not present" (sfp-module-present of
- {/interface/ethernet/monitor}), the same as ifOperStatus via SNMP.
+ multicast and broadcast counters stay empty.
 
  Index, description and alias are the same as via SNMP: the index is the
  RouterOS internal id (ifIndex), which does not change when other

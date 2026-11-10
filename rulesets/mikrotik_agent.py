@@ -87,7 +87,7 @@ def _migrate_params(value: object) -> dict[str, object]:
         result["infos"] = infos
 
     # Opt-in modules added in 4.2.0 (wifi), 4.3.0 (wireguard), 4.4.0 (ntp,
-    # pools), 4.5.0 (ups) and later (interfaces) are missing in older rules;
+    # pools), 4.5.0 (ups) and 4.6.0 (interfaces) are missing in older rules;
     # they are required now, so default them to off.
     if isinstance(result.get("infos"), dict):
         for module in ("wifi", "wireguard", "ntp", "pools", "ups", "interfaces"):

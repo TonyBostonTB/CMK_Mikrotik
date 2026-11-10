@@ -1,6 +1,6 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
-## [Unreleased]
+## [4.6.0] - 2026-11-10
 ### Added
 - **Network interfaces** (new opt-in agent module interfaces, rule option
   "Network interfaces", RouterOS 6 and 7, /interface and
