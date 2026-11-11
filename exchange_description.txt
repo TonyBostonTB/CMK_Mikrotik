@@ -1,6 +1,6 @@
 MikroTik RouterOS monitoring for CheckMK
 
-Monitors MikroTik RouterOS devices via the RouterOS API (v2, port 8729/SSL or 8728) or the RESTful API. Provides checks for:
+Monitors MikroTik RouterOS devices via the RouterOS API (v2, port 8729/SSL or 8728) or the RESTful API (port 443/HTTPS or 80). Provides checks for:
 
 - System health, fans, and temperature sensors
 - Power supply units (per-PSU voltage, current, and wattage), PoE consumption
