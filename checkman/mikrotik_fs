@@ -1,0 +1,30 @@
+title: MikroTik Filesystem system disk
+agents: mikrotik
+catalog: hw/network/mikrotik
+license: GPL
+distribution: check_mk
+description:
+ Usage of the system storage of a MikroTik RouterOS 6 or 7 device
+ ({total-hdd-space} and {free-hdd-space} of {/system/resource}) with the
+ standard filesystem check: levels, magic factor and trends via the rule
+ {File systems (used space and growth)}, default {WARN} at 80%, {CRIT} at
+ 90%. NAND bad blocks are only shown in the details, they have their own
+ service {NAND bad blocks}.
+
+ On a host that is also polled via SNMP the agent section supersedes the
+ SNMP section (hr_fs), so the service exists once. This only applies
+ when the module delivered data.
+
+ To connect to the MikroTik device a special datasource program is
+ used: {MikroTik RouterOS} in Setup > Agents > Other integrations,
+ module "System resources". The module is opt-in, "all" does not
+ include it.
+
+item:
+ {system disk}, the same item as via SNMP.
+
+perfdata:
+ Used, free and total space, growth and trend.
+
+inventory:
+ One service.

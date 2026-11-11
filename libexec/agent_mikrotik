@@ -75,11 +75,11 @@ OPTIONS:
                                 which may contain the keywords "bgp", "ospf",
                                 "health", "board", "vrrp", "ipsec", "chains",
                                 "file", "license", "wifi", "wireguard", "ntp",
-                                "pools", "ups" and "interfaces".
+                                "pools", "ups", "interfaces" and "system".
                                 You can define to use only few of them to optimize
                                 performance. The default is "all", which covers
                                 every module except "wifi", "wireguard", "ntp",
-                                "pools", "ups" and "interfaces"
+                                "pools", "ups", "interfaces" and "system"
                                 (opt-in, name them explicitly).
 
 """)
@@ -461,6 +461,37 @@ def api_call(path, args, timeout=15):
         pprint.pprint(result)
     return None if trapped else result
 
+# system resources from one /system/resource request, as three sections:
+#   mikrotik_system         CPU, system disk, NAND bad blocks
+#   mikrotik_system_mem     total and free memory (-> Checkmk mem_used)
+#   mikrotik_system_uptime  uptime (-> Checkmk uptime)
+# Separate sections because memory and uptime feed Checkmk's own parsed
+# sections and checks. Key value lines, like the board section.
+# cpu-load is a short-term value: the answer of the first request of the
+# run is used, taken before the agent's own requests (HTTPS on small CPUs)
+# load the device; queried at the time of the module it showed up to 20 %
+# instead of 1-4 % on a hEX S.
+_SYSTEM_KEYS = ('cpu-load', 'cpu-count', 'cpu', 'cpu-frequency',
+                'free-hdd-space', 'total-hdd-space', 'bad-blocks',
+                'write-sect-since-reboot', 'write-sect-total')
+
+def system_sections(api, rows=None):
+    if not rows:
+        rows = wifi_rows(api, "/system/resource/print") or []
+    if not rows:
+        return []
+    res = rows[0]
+    out = []
+    for header, keys in (('mikrotik_system', _SYSTEM_KEYS),
+                         ('mikrotik_system_mem', ('total-memory', 'free-memory')),
+                         ('mikrotik_system_uptime', ('uptime',))):
+        lines = ['%s %s' % (key, res[key]) for key in keys if key in res]
+        if lines:
+            out.append('<<<%s>>>' % header)
+            out.extend(lines)
+            out.append('<<<>>>')
+    return out
+
 # negotiated rate of an ethernet port ("1Gbps", "2.5Gbps", "100Mbps") in bit/s
 def rate_to_bps(rate):
     match = re.match(r'([\d.]+)\s*([KMG])bps', rate or '')
@@ -704,7 +735,7 @@ command_set['6'] = {
 }
 
 # modules that "all" does not include - they only run when named in --modules
-OPT_IN_MODULES = ("wifi", "wireguard", "ntp", "pools", "ups", "interfaces")
+OPT_IN_MODULES = ("wifi", "wireguard", "ntp", "pools", "ups", "interfaces", "system")
 
 # wifi: one entry per RouterOS wireless driver. Devices only know the menus
 # of the installed driver; the others answer with a trap and are skipped.
@@ -727,6 +758,14 @@ WIFI_SOURCES = [
 # pool_lines
 command_set['6']['pools'] = {
                        "header"   : "mikrotik_pool",
+                       "active"   : False,
+                       "command"  : [],
+                      }
+
+# system resources (CPU, memory, system disk, uptime), RouterOS 6 and 7;
+# one /system/resource request, printed as three sections, see system_sections
+command_set['6']['system'] = {
+                       "header"   : "mikrotik_system",
                        "active"   : False,
                        "command"  : [],
                       }
@@ -853,7 +892,10 @@ print ("<<<check_mk>>>")
 print ("Version: 4.6.0-mikrotik_agent")
 
 # detect firmware version and set commands
-version=myapi(["/system/resource/print"])[0]['version'].split('.')[0]
+# the first request of the run: also used by the system module, so its
+# cpu-load is measured before the agent's own requests load the CPU
+first_resource = myapi(["/system/resource/print"])
+version=first_resource[0]['version'].split('.')[0]
 try:
     command_options = command_set[version]
 except:
@@ -921,6 +963,13 @@ for module in command_options.keys():
             print('<<<mikrotik_wireguard:sep(124)>>>')
             print('\n'.join(lines))
             print('<<<>>>')
+        continue
+
+    # system resources: /system/resource as three sections, see system_sections
+    if module == "system":
+        lines = system_sections(myapi, first_resource)
+        if lines:
+            print('\n'.join(lines))
         continue
 
     # network interfaces: /interface and the ethernet monitor, see interface_lines

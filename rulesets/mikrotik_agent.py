@@ -87,10 +87,10 @@ def _migrate_params(value: object) -> dict[str, object]:
         result["infos"] = infos
 
     # Opt-in modules added in 4.2.0 (wifi), 4.3.0 (wireguard), 4.4.0 (ntp,
-    # pools), 4.5.0 (ups) and 4.6.0 (interfaces) are missing in older rules;
-    # they are required now, so default them to off.
+    # pools), 4.5.0 (ups), 4.6.0 (interfaces) and later (system) are missing
+    # in older rules; they are required now, so default them to off.
     if isinstance(result.get("infos"), dict):
-        for module in ("wifi", "wireguard", "ntp", "pools", "ups", "interfaces"):
+        for module in ("wifi", "wireguard", "ntp", "pools", "ups", "interfaces", "system"):
             result["infos"].setdefault(module, False)
 
     return result
@@ -277,6 +277,17 @@ def _parameter_form() -> Dictionary:
                                 title=Title(
                                     "Network interfaces (replaces the SNMP "
                                     "interface services of the host)"
+                                ),
+                                prefill=DefaultValue(False),
+                            ),
+                        ),
+                        # rules stored before it was added lack it, _migrate_params adds it
+                        "system": DictElement(
+                            required=True,
+                            parameter_form=BooleanChoice(
+                                title=Title(
+                                    "System resources: CPU, memory, system disk, uptime "
+                                    "(replaces the SNMP services of the host)"
                                 ),
                                 prefill=DefaultValue(False),
                             ),

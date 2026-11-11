@@ -184,6 +184,23 @@ graph_mikrotik_pool_percent = graphs.Graph(
 )
 
 # ---------------------------------------------------------------------------
+# NAND bad blocks (system resources)
+# ---------------------------------------------------------------------------
+
+metric_mikrotik_bad_blocks = metrics.Metric(
+    name="mikrotik_bad_blocks",
+    title=Title("NAND bad blocks"),
+    unit=UNIT_PERCENT,
+    color=metrics.Color.BROWN,
+)
+
+perfometer_mikrotik_bad_blocks = perfometers.Perfometer(
+    name="mikrotik_bad_blocks",
+    focus_range=perfometers.FocusRange(perfometers.Closed(0), perfometers.Open(10)),
+    segments=["mikrotik_bad_blocks"],
+)
+
+# ---------------------------------------------------------------------------
 # UPS (battery charge, runtime, load, temperature and frequency use the
 # Checkmk metrics battery_capacity, battery_seconds_remaining, output_load,
 # temp and frequency)
