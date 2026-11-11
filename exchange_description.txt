@@ -19,7 +19,8 @@ Monitors MikroTik RouterOS devices via the RouterOS API (v2, port 8729/SSL or 87
 - IP pools: used and free addresses per pool (DHCP, PPP, hotspot)
 - UPS (package ups.npk): power source, battery charge, runtime left, load, voltages; model and serial in the HW/SW inventory
 - Network interfaces: traffic, errors, state and speed through the standard Checkmk interface check, items the same as via SNMP
-- Metric graphs and Perf-O-Meters for file age, PoE, firewall, BGP, WiFi, WireGuard, NTP, IP pools, UPS and network interfaces
+- System resources: CPU utilization (on hosts without SNMP), memory, system disk, uptime and NAND bad blocks, same service names as via SNMP
+- Metric graphs and Perf-O-Meters for file age, PoE, firewall, BGP, WiFi, WireGuard, NTP, IP pools, UPS, network interfaces and NAND bad blocks
 
 Requirements: CheckMK 2.4 or later, RouterOS 7.x.
 

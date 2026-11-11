@@ -889,7 +889,7 @@ if not restful:
 
 # special agent header
 print ("<<<check_mk>>>")
-print ("Version: 4.6.0-mikrotik_agent")
+print ("Version: 4.7.0-mikrotik_agent")
 
 # detect firmware version and set commands
 # the first request of the run: also used by the system module, so its

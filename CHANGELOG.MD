@@ -1,12 +1,12 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
-## [Unreleased]
+## [4.7.0] - 2026-11-11
 ### Added
 - **System resources** (new opt-in agent module system, rule option
   "System resources", RouterOS 6 and 7, one /system/resource request,
   contributed by Klaus Paulitsch): CPU utilization on hosts without
-  SNMP (rule "CPU
-  utilization for simple devices", default WARN 80, CRIT 90 percent),
+  SNMP (rule "CPU utilization for simple devices", default WARN 80, CRIT
+  90 percent),
   memory through the Checkmk memory check (rule "Memory levels"),
   Filesystem system disk through the standard filesystem check (rule
   "File systems") and uptime through the Checkmk uptime check. Same

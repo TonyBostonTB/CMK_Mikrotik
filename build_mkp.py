@@ -22,7 +22,7 @@ import tarfile
 import time
 
 PACKAGE_NAME = "mikrotik"
-VERSION = "4.6.0"
+VERSION = "4.7.0"
 OUTPUT = f"{PACKAGE_NAME}-{VERSION}.mkp"
 
 # (source path relative to repo root, archive path inside cmk_addons_plugins.tar)
@@ -95,7 +95,7 @@ SUMMARY = (
     "per-PSU power; RouterOS Info and HW/SW inventory (model, serial number, "
     "RouterOS version, RouterBOOT firmware); CHR license state; IPsec and "
     "firewall filter rules; WiFi clients, signal and radios per SSID, also via CAPsMAN; WireGuard peer handshake and traffic; NTP client synchronisation, offset and stratum; "
-    "IP pool usage (used and free addresses); UPS power source, battery and load; network interfaces through the standard interface check; graphs and Perf-O-Meters; file age and crashfile handling. "
+    "IP pool usage (used and free addresses); UPS power source, battery and load; network interfaces through the standard interface check; system resources (CPU, memory, system disk, uptime, NAND bad blocks); graphs and Perf-O-Meters; file age and crashfile handling. "
     "Requires CheckMK 2.4.0 or later. Full changelog: CHANGELOG.MD in the "
     "source repository."
 )
