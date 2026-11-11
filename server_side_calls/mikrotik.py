@@ -56,7 +56,7 @@ class _Params:
     password: Secret
     rest: bool = False
     ssl_mode: str = "ssl"  # "ssl" | "ssl_skip" | "no_ssl"
-    connect: int = 8729
+    connect: int | None = None  # None: agent default for the connection type
     # Module flags (correspond 1-to-1 with --modules arguments)
     bgp: bool = False
     ospf: bool = False
@@ -102,7 +102,7 @@ class _Params:
             password=obj["password"],
             rest=bool(obj.get("rest", False)),
             ssl_mode=ssl_mode,
-            connect=int(obj.get("connect", 8729)),
+            connect=int(obj["connect"]) if obj.get("connect") is not None else None,
             bgp=bool(infos.get("bgp", False)),
             ospf=bool(infos.get("ospf", False)),
             vrrp=bool(infos.get("vrrp", False)),
@@ -152,7 +152,8 @@ def _mikrotik_commands(
     if params.rest:
         args.append("--rest")
 
-    args += ["--connect", str(params.connect)]
+    if params.connect is not None:
+        args += ["--connect", str(params.connect)]
 
     # Build the comma-separated module list from the enabled flags.
     modules: list[str] = [

@@ -1,10 +1,23 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [4.7.1] - 2026-11-11
+### Fixed
+- **Default port** (reported by kp-workitout): a new special agent
+  rule came with SSL and port 8728, the RouterOS API port without SSL, so
+  it failed with the defaults. The TCP port is now optional; without it
+  the agent uses the default port of the connection type: 8729 (RouterOS
+  API with SSL), 8728 (RouterOS API without SSL), 443 (REST API with SSL)
+  or 80 (REST API without SSL). Before, REST without SSL defaulted to 443.
+
+### Upgrade notes
+- Existing rules keep their stored port. To use the default port of the
+  connection type, untick "TCP port" in the rule.
+
 ## [4.7.0] - 2026-11-11
 ### Added
 - **System resources** (new opt-in agent module system, rule option
   "System resources", RouterOS 6 and 7, one /system/resource request,
-  contributed by Klaus Paulitsch): CPU utilization on hosts without
+  contributed by kp-workitout): CPU utilization on hosts without
   SNMP (rule "CPU utilization for simple devices", default WARN 80, CRIT
   90 percent),
   memory through the Checkmk memory check (rule "Memory levels"),
@@ -29,7 +42,7 @@
 ### Added
 - **Network interfaces** (new opt-in agent module interfaces, rule option
   "Network interfaces", RouterOS 6 and 7, /interface and
-  /interface/ethernet/monitor, contributed by Klaus Paulitsch): one
+  /interface/ethernet/monitor, contributed by kp-workitout): one
   service Interface per interface through the standard Checkmk interface
   check, so the rules "Network interface and switch port discovery" and
   "Network interfaces and switch ports" apply. Index, description, alias
@@ -50,9 +63,8 @@
 ## [4.5.0] - 2026-11-04
 ### Added
 - **UPS** (new opt-in agent module ups, rule option "UPS", RouterOS 6
-  and 7, /system/ups with package ups.npk, contributed by Klaus
-  Paulitsch): one service UPS per UPS with power source (CRIT on
-  battery), battery low (CRIT), replace battery and overload (WARN),
+  and 7, /system/ups with package ups.npk, contributed by kp-workitout):
+  one service UPS per UPS with power source (CRIT on battery), battery low (CRIT), replace battery and overload (WARN),
   battery charge (default WARN 50, CRIT 25 percent), runtime left
   (default WARN 10, CRIT 5 minutes), load (default WARN 80, CRIT 90
   percent) and optionally temperature; voltages and frequency as
@@ -68,7 +80,7 @@
 ## [4.4.0] - 2026-11-04
 ### Added
 - **IP pools** (new opt-in agent module pools, rule option "IP pools",
-  RouterOS 6 and 7, /ip/pool, contributed by Klaus Paulitsch): one service
+  RouterOS 6 and 7, /ip/pool, contributed by kp-workitout): one service
   IP Pool per pool with used and free addresses; levels for used
   addresses in percent (default WARN 80, CRIT 90) and optionally for free
   addresses, new check rule "MikroTik IP Pools". Uses the total, used and
@@ -77,13 +89,13 @@
   UNKNOWN if the used addresses cannot be read. Metrics, Perf-O-Meter and
   graphs. Works with the RouterOS API and the REST API.
 - **NTP client** (new opt-in agent module ntp, rule option "NTP client",
-  RouterOS 7, /system/ntp/client, contributed by Klaus Paulitsch): service
+  RouterOS 7, /system/ntp/client, contributed by kp-workitout): service
   NTP Time with synchronisation status, synced server, absolute time
   offset (default WARN 200 ms, CRIT 500 ms) and stratum (default WARN 10,
   CRIT 15); a disabled client is WARN. New check rule "MikroTik NTP
   Client". Works with the RouterOS API and the REST API.
 - **Metric definitions, graphs and Perf-O-Meters** (new file
-  graphing/mikrotik.py, contributed by Klaus Paulitsch):
+  graphing/mikrotik.py, contributed by kp-workitout):
   - File age and PoE Consumption now use the Checkmk metrics age and
     power, so the standard graphs and Perf-O-Meters appear.
   - Firewall Filter: packets metric with title and unit, graph.

@@ -649,7 +649,7 @@ opt_debug       = False
 opt_timeout     = 10
 opt_any_hostkey = ""
 secure          = True
-port            = 8729
+port            = None
 restful         = False
 certcheck       = True
 
@@ -828,12 +828,10 @@ for o,a in opts:
             password = a
     elif o in [ '-n', '--no-ssl' ]:
         secure   = False
-        port    = 8728
     elif o in [ '-t', '--skip-cert-check' ]:
         certcheck = False
     elif o in [ '-r', '--rest' ]:
         restful = True
-        port    = 443
     elif o in [ '-c', '--connect' ]:
         port    = a
     elif o in [ '-i', '--modules' ]:
@@ -850,6 +848,14 @@ for o,a in opts:
     elif o in [ '-h', '--help' ]:
         usage()
         sys.exit(0)
+
+# Default port from the connection type, after all options are parsed so the
+# order of --no-ssl and --rest does not matter.
+if port is None:
+    if restful:
+        port = 443 if secure else 80
+    else:
+        port = 8729 if secure else 8728
 
 if len(args) == 1:
     host = args[0]

@@ -154,13 +154,15 @@ def _parameter_form() -> Dictionary:
                 ),
             ),
             "connect": DictElement(
-                required=True,
+                required=False,
                 parameter_form=Integer(
                     title=Title("TCP port"),
                     help_text=Help(
-                        "Port to connect to. Default is 8729 (SSL) or 8728 (no SSL).",
+                        "Port to connect to. Leave unticked for the default port of "
+                        "the connection type: 8729 (RouterOS API with SSL), 8728 "
+                        "(RouterOS API without SSL), 443 (REST API with SSL) or 80 "
+                        "(REST API without SSL).",
                     ),
-                    prefill=DefaultValue(8728),
                     custom_validate=(
                         validators.NumberInRange(min_value=1, max_value=65535),
                     ),
