@@ -184,6 +184,17 @@ graph_mikrotik_pool_percent = graphs.Graph(
 )
 
 # ---------------------------------------------------------------------------
+# MLAG
+# ---------------------------------------------------------------------------
+
+metric_mikrotik_mlag_bond_active = metrics.Metric(
+    name="mikrotik_mlag_bond_active",
+    title=Title("Active member ports"),
+    unit=UNIT_COUNT,
+    color=metrics.Color.GREEN,
+)
+
+# ---------------------------------------------------------------------------
 # NAND bad blocks (system resources)
 # ---------------------------------------------------------------------------
 

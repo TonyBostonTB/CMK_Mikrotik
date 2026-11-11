@@ -1,0 +1,29 @@
+title: MikroTik MLAG Peer
+agents: mikrotik
+catalog: hw/network/mikrotik
+license: GPL
+distribution: check_mk
+description:
+ State of the MLAG (multi-chassis link aggregation) peer connection of a
+ MikroTik bridge with an MLAG peer port ({/interface/bridge/monitor},
+ {mlag-state} and {mlag-active-role}).
+
+ {connected} is OK. {connecting} means the connection to the peer (ICCP
+ over the peer port) is down and is CRIT by default; any other state, for
+ example an error text like "peer port not running", is CRIT as well.
+ The role of this node (primary/secondary) is shown; optionally an
+ expected role can be set, a different role is then WARN (the roles
+ change when the primary reboots or fails). Levels via the rule
+ {MikroTik MLAG peer}.
+
+ To connect to the MikroTik device a special datasource program is
+ used: {MikroTik RouterOS} in Setup > Agents > Other integrations,
+ module "MLAG" (RouterOS 7, CRS3xx/CRS5xx switches). The module is
+ opt-in, "all" does not include it. Field names follow the MikroTik MLAG
+ documentation.
+
+item:
+ The name of the bridge.
+
+inventory:
+ One service per enabled bridge with an MLAG peer port.
