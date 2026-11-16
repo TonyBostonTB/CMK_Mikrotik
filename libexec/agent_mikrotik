@@ -851,8 +851,6 @@ command_set['7']['wireguard'] = {
                        "command"  : [],
                       }
 
-# NTP client of RouterOS 7 (status, synced-server, synced-stratum,
-# system-offset, freq-drift); printed as key value lines
 # MLAG, RouterOS 7 only; the commands are in mlag_lines
 command_set['7']['mlag'] = {
                        "header"   : "mikrotik_mlag",
@@ -860,6 +858,8 @@ command_set['7']['mlag'] = {
                        "command"  : [],
                       }
 
+# NTP client of RouterOS 7 (status, synced-server, synced-stratum,
+# system-offset, freq-drift); printed as key value lines
 command_set['7']['ntp'] = {
                        "header"   : "mikrotik_ntp",
                        "active"   : False,
