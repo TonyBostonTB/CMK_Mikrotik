@@ -1,5 +1,18 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [Unreleased]
+### Fixed
+- **Firewall rule option**: the special agent rule showed two checkboxes
+  for firewall rules, an outer "Firewall Rules" box that only added the
+  option and an inner "Enable firewall monitoring" box. With only the
+  outer box ticked, firewall monitoring stayed off. The outer box is gone;
+  "Enable firewall monitoring" alone switches it on.
+
+### Upgrade notes
+- Existing rules keep their firewall setting. Rules where only the outer
+  box was ticked had firewall monitoring off and keep it off; tick
+  "Enable firewall monitoring" to turn it on.
+
 ## [4.8.0] - 2026-11-17
 ### Added
 - **MLAG** (new opt-in agent module mlag, rule option "MLAG", RouterOS 7,

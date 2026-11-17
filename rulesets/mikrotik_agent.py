@@ -76,14 +76,15 @@ def _migrate_params(value: object) -> dict[str, object]:
         # The legacy list form turns "firewall" into True; the form needs a dict.
         if infos.get("firewall") is True:
             infos["firewall"] = {"enabled": True}
-        if isinstance(infos.get("firewall"), dict):
-            fw = dict(infos["firewall"])
-            if "show-disabled" in fw:
-                fw["show_disabled"] = fw.pop("show-disabled")
-            # Optional before 4.3.2, required now; a missing key meant off.
-            fw.setdefault("enabled", False)
-            fw.setdefault("show_disabled", False)
-            infos["firewall"] = fw
+        # Optional before 4.8.1, required now; a missing firewall meant off.
+        fw = infos.get("firewall")
+        fw = dict(fw) if isinstance(fw, dict) else {}
+        if "show-disabled" in fw:
+            fw["show_disabled"] = fw.pop("show-disabled")
+        # Optional before 4.3.2, required now; a missing key meant off.
+        fw.setdefault("enabled", False)
+        fw.setdefault("show_disabled", False)
+        infos["firewall"] = fw
         result["infos"] = infos
 
     # Opt-in modules added in 4.2.0 (wifi), 4.3.0 (wireguard), 4.4.0 (ntp,
@@ -306,10 +307,11 @@ def _parameter_form() -> Dictionary:
                         ),
                         # Firewall is a nested dict because it has a sub-option
                         # (show-disabled) beyond a simple enabled/disabled flag.
-                        # Both sub-options are required so each shows one
-                        # checkbox; _migrate_params fills them in older rules.
+                        # The element and both sub-options are required so
+                        # the form shows no extra checkbox for the group;
+                        # _migrate_params fills them in older rules.
                         "firewall": DictElement(
-                            required=False,
+                            required=True,
                             parameter_form=Dictionary(
                                 title=Title("Firewall Rules"),
                                 elements={
