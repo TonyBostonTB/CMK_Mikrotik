@@ -1,6 +1,6 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
-## [Unreleased]
+## [4.8.1] - 2026-11-17
 ### Fixed
 - **Firewall rule option**: the special agent rule showed two checkboxes
   for firewall rules, an outer "Firewall Rules" box that only added the
