@@ -1,0 +1,28 @@
+title: MikroTik MLAG Bond
+agents: mikrotik
+catalog: hw/network/mikrotik
+license: GPL
+distribution: check_mk
+description:
+ Member ports and LACP partner of a dual-connected MikroTik bond, a
+ bonding interface with an {mlag-id} ({/interface/bonding/monitor}).
+
+ No active member port (or bond not running) is CRIT, inactive member
+ ports are WARN, no LACP partner (mode 802.3ad) is WARN by default.
+ States via the rule {MikroTik MLAG bonds}.
+
+ To connect to the MikroTik device a special datasource program is
+ used: {MikroTik RouterOS} in Setup > Agents > Other integrations,
+ module "MLAG" (RouterOS 7, CRS3xx/CRS5xx switches). The module is
+ opt-in, "all" does not include it. Field names follow the MikroTik MLAG
+ documentation.
+
+item:
+ The name of the bond.
+
+perfdata:
+ Number of active member ports.
+
+inventory:
+ One service per enabled bond with an mlag-id, only on devices with an
+ MLAG bridge.

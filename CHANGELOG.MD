@@ -1,5 +1,20 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
+## [Unreleased]
+### Added
+- **MLAG** (new opt-in agent module mlag, rule option "MLAG", RouterOS 7,
+  CRS3xx and CRS5xx switches, contributed by kp-workitout): service
+  MLAG per bridge with an MLAG peer port (peer connection connected or
+  connecting, role primary or secondary, optionally an expected role) and
+  MLAG bond per bonding with an mlag-id (active and inactive member ports,
+  LACP partner). New check rules "MikroTik MLAG peer" and "MikroTik MLAG
+  bonds". Works with the RouterOS API and the REST API.
+
+### Upgrade notes
+- MLAG: the module is off in existing rules and not part of the agent
+  default "all". Enable "MLAG" in the special agent rule and run a
+  service discovery.
+
 ## [4.7.1] - 2026-11-11
 ### Fixed
 - **Default port** (reported by kp-workitout): a new special agent

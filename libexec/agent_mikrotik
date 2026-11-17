@@ -75,12 +75,13 @@ OPTIONS:
                                 which may contain the keywords "bgp", "ospf",
                                 "health", "board", "vrrp", "ipsec", "chains",
                                 "file", "license", "wifi", "wireguard", "ntp",
-                                "pools", "ups", "interfaces" and "system".
+                                "pools", "ups", "interfaces", "system" and
+                                "mlag".
                                 You can define to use only few of them to optimize
                                 performance. The default is "all", which covers
                                 every module except "wifi", "wireguard", "ntp",
-                                "pools", "ups", "interfaces" and "system"
-                                (opt-in, name them explicitly).
+                                "pools", "ups", "interfaces", "system" and
+                                "mlag" (opt-in, name them explicitly).
 
 """)
 
@@ -567,6 +568,54 @@ def interface_lines(api):
     clean = lambda field: str(field).replace('|', '/').replace('\n', ' ')
     return ['|'.join(clean(field) for field in line) for line in lines]
 
+# MLAG (RouterOS 7, CRS3xx/CRS5xx), pipe separated:
+#   bridge|<name>|<field>|<value>      bridge with an MLAG peer port
+#   bridgemon|<name>|<field>|<value>   "/interface/bridge/monitor once"
+#   bond|<name>|<field>|<value>        bonding with an mlag-id
+#   bondmon|<name>|<field>|<value>     "/interface/bonding/monitor once"
+# Bonds are only looked at if a bridge has an MLAG peer port; disabled
+# bridges and bonds are left out. Field names follow the MikroTik MLAG
+# documentation.
+def _configured(value):
+    return value not in (None, '', 'none')
+
+def mlag_lines(api):
+    lines = []
+    bridges = [b for b in wifi_rows(api, "/interface/bridge/print") or []
+               if _configured(b.get('mlag-peer-port')) and '.id' in b
+               and b.get('disabled') != 'true']
+    for bridge in bridges:
+        name = bridge.get('name')
+        if not name:
+            continue
+        for key in ('mlag-peer-port', 'mlag-priority', 'mlag-heartbeat', 'running'):
+            if key in bridge:
+                lines.append(['bridge', name, key, str(bridge[key])])
+        for row in (api_call('/interface/bridge/monitor',
+                             {'numbers': bridge['.id'], 'once': ''}) or [])[:1]:
+            for key in ('state', 'mlag-state', 'mlag-active-role', 'bridge-id', 'root-bridge'):
+                if key in row:
+                    lines.append(['bridgemon', name, key, str(row[key])])
+    if not lines:
+        return []  # no MLAG configured: no bonds to look at either
+    for bond in wifi_rows(api, "/interface/bonding/print") or []:
+        name = bond.get('name')
+        if (not name or not _configured(bond.get('mlag-id')) or '.id' not in bond
+                or bond.get('disabled') == 'true'):
+            continue
+        for key in ('mlag-id', 'slaves', 'mode', 'running'):
+            if key in bond:
+                lines.append(['bond', name, key, str(bond[key])])
+        for row in (api_call('/interface/bonding/monitor',
+                             {'numbers': bond['.id'], 'once': ''}) or [])[:1]:
+            for key in ('mode', 'active-ports', 'inactive-ports',
+                        'lacp-system-id', 'lacp-partner-system-id'):
+                if key in row:
+                    lines.append(['bondmon', name, key, str(row[key])])
+
+    clean = lambda field: field.replace('|', '/').replace('\n', ' ')
+    return ['|'.join(clean(field) for field in line) for line in lines]
+
 # UPS (/system/ups, package ups.npk), pipe separated:
 #   ups|<name>|<field>|<value>    configuration and identification
 #   mon|<name>|<field>|<value>    "/system/ups/monitor once" of this UPS
@@ -735,7 +784,8 @@ command_set['6'] = {
 }
 
 # modules that "all" does not include - they only run when named in --modules
-OPT_IN_MODULES = ("wifi", "wireguard", "ntp", "pools", "ups", "interfaces", "system")
+OPT_IN_MODULES = ("wifi", "wireguard", "ntp", "pools", "ups", "interfaces", "system",
+                  "mlag")
 
 # wifi: one entry per RouterOS wireless driver. Devices only know the menus
 # of the installed driver; the others answer with a trap and are skipped.
@@ -797,6 +847,13 @@ command_set['7']['bgp']= {
 # WireGuard exists since RouterOS 7, the command is in wireguard_lines
 command_set['7']['wireguard'] = {
                        "header"   : "mikrotik_wireguard",
+                       "active"   : False,
+                       "command"  : [],
+                      }
+
+# MLAG, RouterOS 7 only; the commands are in mlag_lines
+command_set['7']['mlag'] = {
+                       "header"   : "mikrotik_mlag",
                        "active"   : False,
                        "command"  : [],
                       }
@@ -983,6 +1040,15 @@ for module in command_options.keys():
         lines = interface_lines(myapi)
         if lines:
             print('<<<mikrotik_if:sep(124)>>>')
+            print('\n'.join(lines))
+            print('<<<>>>')
+        continue
+
+    # MLAG: bridges with a peer port and bonds with an mlag-id, see mlag_lines
+    if module == "mlag":
+        lines = mlag_lines(myapi)
+        if lines:
+            print('<<<mikrotik_mlag:sep(124)>>>')
             print('\n'.join(lines))
             print('<<<>>>')
         continue

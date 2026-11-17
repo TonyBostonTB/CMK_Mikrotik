@@ -22,6 +22,8 @@ from cmk.rulesets.v1.form_specs import (
     Percentage,
     ServiceState,
     SimpleLevels,
+    SingleChoice,
+    SingleChoiceElement,
     String,
     TimeMagnitude,
     TimeSpan,
@@ -654,6 +656,81 @@ rule_spec_mikrotik_bad_blocks = CheckParameters(
                     form_spec_template=Percentage(),
                     prefill_fixed_levels=DefaultValue((2.0, 5.0)),
                 ),
+            ),
+        },
+    ),
+)
+
+
+# ---------------------------------------------------------------------------
+# MLAG
+# ---------------------------------------------------------------------------
+
+
+def _mlag_state(title: str, default: ServiceState) -> DictElement:
+    return DictElement(
+        required=False,
+        parameter_form=ServiceState(title=Title(title), prefill=DefaultValue(default)),
+    )
+
+
+rule_spec_mikrotik_mlag = CheckParameters(
+    name="mikrotik_mlag",
+    title=Title("MikroTik MLAG peer"),
+    topic=Topic.NETWORKING,
+    condition=HostAndItemCondition(item_title=Title("Bridge name")),
+    parameter_form=lambda: Dictionary(
+        help_text=Help(
+            "State of the MLAG peer connection (ICCP) of a bridge with an MLAG "
+            "peer port, and the role of this node. Activate special agent mikrotik "
+            "with the module 'MLAG' to use this.",
+        ),
+        elements={
+            "connecting_state": _mlag_state(
+                "State while connecting to the peer (peer link down)", ServiceState.CRIT
+            ),
+            "error_state": _mlag_state(
+                "State for any other MLAG state (error text, no state)", ServiceState.CRIT
+            ),
+            "expected_role": DictElement(
+                required=False,
+                parameter_form=SingleChoice(
+                    title=Title("Expected role of this node"),
+                    help_text=Help(
+                        "Set primary or secondary to be alerted when the roles "
+                        "changed, e.g. after a reboot or failure of the primary.",
+                    ),
+                    prefill=DefaultValue("any"),
+                    elements=[
+                        SingleChoiceElement(name="any", title=Title("Any role")),
+                        SingleChoiceElement(name="primary", title=Title("Primary")),
+                        SingleChoiceElement(name="secondary", title=Title("Secondary")),
+                    ],
+                ),
+            ),
+            "role_mismatch_state": _mlag_state(
+                "State if the role differs from the expected role", ServiceState.WARN
+            ),
+        },
+    ),
+)
+
+
+rule_spec_mikrotik_mlag_bond = CheckParameters(
+    name="mikrotik_mlag_bond",
+    title=Title("MikroTik MLAG bonds"),
+    topic=Topic.NETWORKING,
+    condition=HostAndItemCondition(item_title=Title("Bond name")),
+    parameter_form=lambda: Dictionary(
+        help_text=Help(
+            "Member ports and LACP partner of bonds with an mlag-id. Activate "
+            "special agent mikrotik with the module 'MLAG' to use this.",
+        ),
+        elements={
+            "no_active_state": _mlag_state("State if no member port is active", ServiceState.CRIT),
+            "inactive_state": _mlag_state("State if member ports are inactive", ServiceState.WARN),
+            "no_partner_state": _mlag_state(
+                "State if no LACP partner is seen (802.3ad)", ServiceState.WARN
             ),
         },
     ),

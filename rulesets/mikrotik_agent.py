@@ -87,10 +87,12 @@ def _migrate_params(value: object) -> dict[str, object]:
         result["infos"] = infos
 
     # Opt-in modules added in 4.2.0 (wifi), 4.3.0 (wireguard), 4.4.0 (ntp,
-    # pools), 4.5.0 (ups), 4.6.0 (interfaces) and 4.7.0 (system) are missing
-    # in older rules; they are required now, so default them to off.
+    # pools), 4.5.0 (ups), 4.6.0 (interfaces), 4.7.0 (system) and 4.8.0
+    # (mlag) are missing in older rules; they are required now, so default them to off.
     if isinstance(result.get("infos"), dict):
-        for module in ("wifi", "wireguard", "ntp", "pools", "ups", "interfaces", "system"):
+        for module in (
+            "wifi", "wireguard", "ntp", "pools", "ups", "interfaces", "system", "mlag",
+        ):
             result["infos"].setdefault(module, False)
 
     return result
@@ -291,6 +293,14 @@ def _parameter_form() -> Dictionary:
                                     "System resources: CPU, memory, system disk, uptime "
                                     "(replaces the SNMP services of the host)"
                                 ),
+                                prefill=DefaultValue(False),
+                            ),
+                        ),
+                        # rules stored before it was added lack it, _migrate_params adds it
+                        "mlag": DictElement(
+                            required=True,
+                            parameter_form=BooleanChoice(
+                                title=Title("MLAG (RouterOS 7, peer state and MLAG bonds)"),
                                 prefill=DefaultValue(False),
                             ),
                         ),
