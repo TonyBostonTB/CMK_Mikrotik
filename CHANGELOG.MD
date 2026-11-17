@@ -1,6 +1,6 @@
 # Changelog - Mikrotik Monitoring Plugin for Checkmk
 
-## [Unreleased]
+## [4.8.0] - 2026-11-17
 ### Added
 - **MLAG** (new opt-in agent module mlag, rule option "MLAG", RouterOS 7,
   CRS3xx and CRS5xx switches, contributed by kp-workitout): service
